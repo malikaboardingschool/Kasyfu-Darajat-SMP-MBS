@@ -36,7 +36,7 @@
             position: relative;
             box-sizing: border-box;
         }
-        /* Certificate Border */
+        /* Certificate Border - Changed from justify-between to justify-start */
         .rapor-border {
             border: 4px double #475569;
             outline: 1px solid #475569;
@@ -46,7 +46,8 @@
             min-height: calc(297mm - 24mm - 20px);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            row-gap: 12px;
         }
         /* Print Styles - Perfect A4 1-Page Layout without browser interference */
         @media print {
@@ -89,12 +90,13 @@
                 outline: 1px solid #475569 !important;
                 outline-offset: -6px !important;
                 padding: 6px !important;
-                min-height: 268mm !important; /* Safe zone height */
-                height: 268mm !important;
-                max-height: 268mm !important;
+                min-height: 275mm !important; /* Safe zone height */
+                height: 275mm !important;
+                max-height: 275mm !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-between !important;
+                justify-content: flex-start !important; /* Changed from justify-between to start */
+                row-gap: 8px !important; /* Tight internal gap for printing */
                 box-sizing: border-box !important;
             }
         }
@@ -248,7 +250,7 @@
                 className: "السابع الألف (7-A)",
                 semester: "الثاني / Genap",
                 academicYear: "٢٠٢٤ - ٢٠٢٥ مـ",
-                homeroomTeacher: "الأستاذ محمد أزكي مولا شكor، لسانس",
+                homeroomTeacher: "الأستاذ محمد أزكي مولا شكور، لسانس",
                 homeroomTeacherNip: "Wali Kelas VII-A",
                 headmaster: "الأستاذ محمد عبد الحليم",
                 headmasterNip: "Kepala SMP MBS",
@@ -300,7 +302,7 @@
                 const data = [
                     headers,
                     [
-                        "202602015", "Athariz Chalief Saputra", "أتاريز خليف سابوترا",
+                        "202602015", "Athariz Chalief Saputra", "أتاريز خليф سابوترا",
                         ...ALL_SUBJECT_FIELDS.map(() => 80),
                         1, 2, 0, "جيد جدا", "جيد جدا", "جيد جدا"
                     ],
@@ -785,7 +787,7 @@
                                                 </div>
 
                                                 <div>
-                                                    <h4 class="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                                                    <h4 class="font-bold text-sm text-blue-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
                                                         <i class="fa-solid fa-user-clock text-blue-600"></i> Absensi Kehadiran (الغياب)
                                                     </h4>
                                                     <div class="grid grid-cols-3 gap-2">
@@ -971,11 +973,11 @@
                                                 </div>
                                             </div>
 
-                                            {/* Two Column Layout for Subjects (Compacted on Print with explicit print grid to prevent column collapse) */}
-                                            <div class="grid grid-cols-1 print:grid-cols-2 md:grid-cols-2 gap-4 flex-grow text-[11px] print:gap-x-4 print:gap-y-1 print:text-[9px]" dir="rtl">
+                                            {/* Two Column Layout for Subjects - Changed grid spacing and height parameters */}
+                                            <div class="grid grid-cols-1 print:grid-cols-2 md:grid-cols-2 gap-4 text-[11px] print:gap-x-4 print:gap-y-1 print:text-[9px]" dir="rtl">
                                                 
-                                                {/* Right Column (under RTL): Ujian Lisan & Pelajaran Umum (Changed flex justify to start to prevent empty space gaps) */}
-                                                <div class="space-y-3.5 flex flex-col justify-start print:space-y-2">
+                                                {/* Right Column (under RTL): Ujian Lisan & Pelajaran Umum (Using justify-start with tight gap to avoid empty gaps in middle) */}
+                                                <div class="space-y-3 flex flex-col justify-start print:space-y-1.5">
                                                     {/* Ujian Lisan Table */}
                                                     <div>
                                                         <div class="arabic-header text-right font-bold text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
@@ -1023,7 +1025,7 @@
                                                                     <th class="border border-slate-300 py-1 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
                                                                     <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">المواد الدراسية / Pelajaran</th>
                                                                     <th class="border border-slate-300 py-1 px-1 text-center w-12 print:py-0.5 print:px-1">الدرجة</th>
-                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-10 print:p-0.5">التقدير</th>
                                                                     <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">الكتابة / Terbilang</th>
                                                                 </tr>
                                                             </thead>
@@ -1048,7 +1050,7 @@
                                                 </div>
 
                                                 {/* Left Column (under RTL): Ujian Tulis (Kajian Islam / Dirasah) */}
-                                                <div class="flex flex-col justify-start print:space-y-2">
+                                                <div class="space-y-3 flex flex-col justify-start print:space-y-1.5">
                                                     <div>
                                                         <div class="arabic-header text-right font-bold text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
                                                             <span>التعبير التحريري / Ujian Tulis (التقييم)</span>
@@ -1087,7 +1089,7 @@
                                             </div>
 
                                             {/* Bottom Block: Absensi Kehadiran, Kepribadian, & Hasil Nilai (Equal heights using Flex Column + flex-grow tables) */}
-                                            <div class="mt-4 grid grid-cols-1 print:grid-cols-3 md:grid-cols-3 gap-3 text-[11px] print:mt-2.5 print:gap-2 print:text-[9px]" dir="rtl">
+                                            <div class="mt-2 grid grid-cols-1 print:grid-cols-3 md:grid-cols-3 gap-3 text-[11px] print:mt-1.5 print:gap-2 print:text-[9px]" dir="rtl">
                                                 
                                                 {/* Absensi Kehadiran */}
                                                 <div class="flex flex-col h-full">
@@ -1163,8 +1165,8 @@
 
                                             </div>
 
-                                            {/* Signature Block */}
-                                            <div class="mt-5 border-t border-slate-300 pt-4 print:mt-3 print:pt-2" dir="rtl">
+                                            {/* Signature Block - Forced to mt-auto for screen/print to sit perfectly at bottom */}
+                                            <div class="mt-auto border-t border-slate-300 pt-4 print:mt-auto print:pt-2" dir="rtl">
                                                 <div class="text-right text-[10px] text-slate-600 italic mb-2 arabic-text print:text-[8.5px] print:mb-1">
                                                     تحريرا في: {schoolConfig.placeDateGreg} / {schoolConfig.placeDateHijr}
                                                 </div>

@@ -36,12 +36,12 @@
             position: relative;
             box-sizing: border-box;
         }
-        /* Certificate Border - Increased side and bottom margins to prevent hugging the border lines */
+        /* Certificate Border - Increased bottom padding to 85px to push signatures up on screen */
         .rapor-border {
             border: 4px double #475569;
             outline: 1px solid #475569;
             outline-offset: -8px;
-            padding: 22px 24px 34px 24px; /* Roomy padding to prevent hugging the double border lines */
+            padding: 22px 24px 85px 24px; /* Lifted up the bottom area to prevent hugging the lines */
             height: 100%;
             min-height: calc(297mm - 24mm - 20px);
             display: flex;
@@ -89,7 +89,7 @@
                 border: 4px double #475569 !important;
                 outline: 1px solid #475569 !important;
                 outline-offset: -6px !important;
-                padding: 18px 22px 28px 22px !important; /* Exquisite inside-border spacing for print output */
+                padding: 18px 22px 85px 22px !important; /* Increased bottom padding to 85px to push signatures up on print */
                 min-height: 277mm !important; /* Precise A4 printable height */
                 height: 277mm !important;
                 max-height: 277mm !important;
@@ -250,7 +250,7 @@
                 className: "السابع الألف (7-A)",
                 semester: "الثاني / Genap",
                 academicYear: "٢٠٢٤ - ٢٠٢٥ مـ",
-                homeroomTeacher: "الأستاذ محمد أزكي مولا شكور، لسانس",
+                homeroomTeacher: "الأستاذ محمد أzكي مولا شكور، لسانس",
                 homeroomTeacherNip: "Wali Kelas VII-A",
                 headmaster: "الأستاذ محمد عبد الحليم",
                 headmasterNip: "Kepala SMP MBS",
@@ -612,7 +612,7 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     <button 
                                         onClick={downloadExcelTemplate}
-                                        class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-slate-200 flex items-center justify-center gap-1 text-center"
+                                        class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-blue-200 flex items-center justify-center gap-1 text-center"
                                         title="Unduh Template Excel"
                                     >
                                         <i class="fa-solid fa-cloud-download text-xs"></i> Unduh Template
@@ -1165,7 +1165,7 @@
 
                                             </div>
 
-                                            {/* Signature Block - Forced to mt-auto for screen/print to sit perfectly at bottom */}
+                                            {/* Signature Block - Increased top padding/margins and reduced name title bottom gaps to lift sign block upwards */}
                                             <div class="mt-auto border-t border-slate-300 pt-4 print:mt-auto print:pt-2" dir="rtl">
                                                 <div class="text-right text-[10px] text-slate-600 italic mb-2 arabic-text print:text-[8.5px] print:mb-1">
                                                     تحريرا في: {schoolConfig.placeDateGreg} / {schoolConfig.placeDateHijr}
@@ -1175,7 +1175,7 @@
                                                     <div>
                                                         <div class="arabic-header font-semibold text-slate-800">رئيس للمدرسة الثانوية / Kepala SMP</div>
                                                         <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-10">Headmaster</div>
-                                                        <div class="font-bold border-b border-slate-800 w-44 mx-auto pb-1 text-slate-900 font-sans print:w-36">{schoolConfig.headmaster}</div>
+                                                        <div class="font-bold border-b border-slate-800 w-44 mx-auto pb-1 text-emerald-950 font-sans print:w-36">{schoolConfig.headmaster}</div>
                                                         <div class="text-[9px] text-slate-500 mt-0.5 print:text-[7.5px]">{schoolConfig.headmasterNip}</div>
                                                     </div>
 
@@ -1183,7 +1183,7 @@
                                                     <div>
                                                         <div class="arabic-header font-semibold text-slate-800">ولي الفصل / Wali Kelas</div>
                                                         <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-10">Homeroom Teacher</div>
-                                                        <div class="font-bold border-b border-slate-800 w-44 mx-auto pb-1 text-slate-900 font-sans print:w-36">{schoolConfig.homeroomTeacher}</div>
+                                                        <div class="font-bold border-b border-slate-800 w-44 mx-auto pb-1 text-emerald-950 font-sans print:w-36">{schoolConfig.homeroomTeacher}</div>
                                                         <div class="text-[9px] text-slate-500 mt-0.5 print:text-[7.5px]">{schoolConfig.homeroomTeacherNip}</div>
                                                     </div>
 

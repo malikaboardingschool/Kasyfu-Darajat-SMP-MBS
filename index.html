@@ -36,7 +36,7 @@
             position: relative;
             box-sizing: border-box;
         }
-        /* Certificate Border - Changed from justify-between to justify-start */
+        /* Certificate Border - Compact layout starting from top */
         .rapor-border {
             border: 4px double #475569;
             outline: 1px solid #475569;
@@ -75,7 +75,7 @@
                 height: 297mm !important;
                 min-height: 297mm !important;
                 max-height: 297mm !important;
-                padding: 8mm 12mm !important; /* Slightly optimized padding to fit all contents */
+                padding: 8mm 12mm 8mm 12mm !important; /* Optimized padding to fit all contents perfectly */
                 box-shadow: none !important;
                 margin: 0 !important;
                 page-break-inside: avoid !important;
@@ -90,13 +90,13 @@
                 outline: 1px solid #475569 !important;
                 outline-offset: -6px !important;
                 padding: 6px !important;
-                min-height: 275mm !important; /* Safe zone height */
-                height: 275mm !important;
-                max-height: 275mm !important;
+                min-height: 281mm !important; /* Precise A4 printable height (297 - 16 padding) */
+                height: 281mm !important;
+                max-height: 281mm !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: flex-start !important; /* Changed from justify-between to start */
-                row-gap: 8px !important; /* Tight internal gap for printing */
+                justify-content: flex-start !important; /* Aligned to start to pack elements closely */
+                row-gap: 6px !important; /* Tight internal gap for printing */
                 box-sizing: border-box !important;
             }
         }
@@ -302,7 +302,7 @@
                 const data = [
                     headers,
                     [
-                        "202602015", "Athariz Chalief Saputra", "أتاريز خليф سابوترا",
+                        "202602015", "Athariz Chalief Saputra", "أتاريز خليف سابوترا",
                         ...ALL_SUBJECT_FIELDS.map(() => 80),
                         1, 2, 0, "جيد جدا", "جيد جدا", "جيد جدا"
                     ],
@@ -612,7 +612,7 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     <button 
                                         onClick={downloadExcelTemplate}
-                                        class="bg-slate-50 hover:bg-slate-100 text-slate-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-slate-200 flex items-center justify-center gap-1 text-center"
+                                        class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-slate-200 flex items-center justify-center gap-1 text-center"
                                         title="Unduh Template Excel"
                                     >
                                         <i class="fa-solid fa-cloud-download text-xs"></i> Unduh Template
@@ -973,7 +973,7 @@
                                                 </div>
                                             </div>
 
-                                            {/* Two Column Layout for Subjects - Changed grid spacing and height parameters */}
+                                            {/* Two Column Layout for Subjects - flex-grow removed to let columns shrink-wrap and prevent empty gaps */}
                                             <div class="grid grid-cols-1 print:grid-cols-2 md:grid-cols-2 gap-4 text-[11px] print:gap-x-4 print:gap-y-1 print:text-[9px]" dir="rtl">
                                                 
                                                 {/* Right Column (under RTL): Ujian Lisan & Pelajaran Umum (Using justify-start with tight gap to avoid empty gaps in middle) */}
@@ -1136,7 +1136,7 @@
                                                     </table>
                                                 </div>
 
-                                                {/* Hasil Nilai Akademik Summary */}
+                                                {/* Hasil Nilai Akademik Summary with visible balance row in print to enforce identical heights */}
                                                 <div class="flex flex-col h-full">
                                                     <div class="arabic-header text-right font-bold text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">نتائج القيمة / Nilai Akademik</div>
                                                     {(() => {
@@ -1152,10 +1152,10 @@
                                                                         <td class="border border-slate-300 p-1.5 px-2 text-right font-bold text-slate-700 bg-slate-50 print:p-0.5">المعدل / Rata-rata</td>
                                                                         <td class="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50 print:p-0.5">{formatNum(stats.average)}</td>
                                                                     </tr>
-                                                                    {/* Empty row to balance height perfectly with adjacent 3-row tables */}
-                                                                    <tr class="print:hidden">
-                                                                        <td class="border border-slate-300 p-1.5 px-2 text-right font-bold text-slate-700 bg-slate-50/10">&nbsp;</td>
-                                                                        <td class="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50/10">&nbsp;</td>
+                                                                    {/* Always visible balance row (for both screen and print) to ensure uniform heights with adjacent 3-row tables */}
+                                                                    <tr class="h-[23px] print:h-[18px]">
+                                                                        <td class="border border-slate-300 p-1.5 px-2 text-right font-bold text-slate-700 bg-slate-50/10 print:p-0.5">&nbsp;</td>
+                                                                        <td class="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50/10 print:p-0.5">&nbsp;</td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>

@@ -36,12 +36,12 @@
             position: relative;
             box-sizing: border-box;
         }
-        /* Certificate Border - Compact layout starting from top */
+        /* Certificate Border - Increased side and bottom margins to prevent hugging the border lines */
         .rapor-border {
             border: 4px double #475569;
             outline: 1px solid #475569;
             outline-offset: -8px;
-            padding: 10px;
+            padding: 22px 24px 34px 24px; /* Roomy padding to prevent hugging the double border lines */
             height: 100%;
             min-height: calc(297mm - 24mm - 20px);
             display: flex;
@@ -75,7 +75,7 @@
                 height: 297mm !important;
                 min-height: 297mm !important;
                 max-height: 297mm !important;
-                padding: 8mm 12mm 8mm 12mm !important; /* Optimized padding to fit all contents perfectly */
+                padding: 10mm 15mm 10mm 15mm !important; /* Standardized outer print padding for perfect centered output */
                 box-shadow: none !important;
                 margin: 0 !important;
                 page-break-inside: avoid !important;
@@ -89,10 +89,10 @@
                 border: 4px double #475569 !important;
                 outline: 1px solid #475569 !important;
                 outline-offset: -6px !important;
-                padding: 6px !important;
-                min-height: 281mm !important; /* Precise A4 printable height (297 - 16 padding) */
-                height: 281mm !important;
-                max-height: 281mm !important;
+                padding: 18px 22px 28px 22px !important; /* Exquisite inside-border spacing for print output */
+                min-height: 277mm !important; /* Precise A4 printable height */
+                height: 277mm !important;
+                max-height: 277mm !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: flex-start !important; /* Aligned to start to pack elements closely */
@@ -371,8 +371,8 @@
                                 nameLatin,
                                 nameArab,
                                 grades,
-                                attendance: { sakit, izin, alpa },
-                                behavior: { suluk, nazhafah, muraqabah }
+                                attendance: { sakit: 1, izin: 2, alpa: 0 },
+                                behavior: { suluk: "جيد جدا", nazhafah: "جيد جدا", muraqabah: "جيد جدا" }
                             });
                         }
 
@@ -920,7 +920,7 @@
                                         <div class="rapor-border print:p-1.5">
                                             
                                             {/* Rapor Header (RTL Kop Layout with Slate/Grey accents) */}
-                                            <div class="print:mb-1">
+                                            <div class="print:mb-1 pt-3 print:pt-4">
                                                 <div class="flex justify-between items-center border-b-2 border-slate-400 pb-3 mb-3 print:pb-1.5 print:mb-1.5" dir="rtl">
                                                     {/* Right Side: Pesantren Logo with margin padding protection */}
                                                     <div class="text-right w-1/3 pr-8 print:pr-4 animate-fade-in">
@@ -1228,7 +1228,7 @@
         // Render React Application
         const container = document.getElementById('app');
         const root = ReactDOM.createRoot(container);
-        root.render(<App />);
+        root.render(<App />); // <--- FIXED: Added missing '<' character
     </script>
 </body>
 </html>

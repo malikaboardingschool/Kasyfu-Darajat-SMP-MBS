@@ -48,38 +48,47 @@
             flex-direction: column;
             justify-content: space-between;
         }
-        /* Print Styles */
+        /* Print Styles - Perfect A4 1-Page Layout without browser interference */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 6mm 10mm;
+                margin: 0mm !important; /* Zero margin to control spacing via padding */
             }
             body {
                 background: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             .no-print {
                 display: none !important;
             }
             .print-area {
-                width: 100% !important;
-                height: 100% !important;
-                min-height: 0 !important;
-                max-height: 280mm !important;
-                padding: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                padding: 10mm 15mm !important; /* precise margins inside A4 paper */
                 box-shadow: none !important;
                 margin: 0 !important;
                 page-break-inside: avoid !important;
                 page-break-after: avoid !important;
+                box-sizing: border-box !important;
+                display: block !important;
+                background: white !important;
             }
             .rapor-border {
                 border: 4px double #475569 !important;
                 outline: 1px solid #475569 !important;
                 outline-offset: -6px !important;
-                padding: 6px !important;
-                min-height: 275mm !important;
-                height: 275mm !important;
+                padding: 8px !important;
+                min-height: 277mm !important;
+                height: 277mm !important;
+                max-height: 277mm !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
                 box-sizing: border-box !important;
             }
         }
@@ -123,7 +132,7 @@
         ];
 
         const SUBJECTS_TULIS_ISLAMIYAH = [
-            { id: "tafsir", nameAr: "التفسير", nameId: "Tafsir" },
+            { id: "tafsir", nameAr: "التقييم / التفسير", nameId: "Tafsir/Evaluasi" },
             { id: "hadits", nameAr: "الحديث", nameId: "Hadits" },
             { id: "fiqih", nameAr: "الفقه", nameId: "Fiqih" },
             { id: "akhlaq", nameAr: "الأخلاق للبنين", nameId: "Akhlaq" },
@@ -235,7 +244,7 @@
                 academicYear: "٢٠٢٤ - ٢٠٢٥ مـ",
                 homeroomTeacher: "الأستاذ محمد أزكي مولا شكور، لسانس",
                 homeroomTeacherNip: "Wali Kelas VII-A",
-                headmaster: "الأستاذ عبد الحليم",
+                headmaster: "الأستاذ محمد عبد الحليم",
                 headmasterNip: "Kepala SMP MBS",
                 placeDateGreg: "ماليك، ٧ يونيو ٢٠٢٥ مـ",
                 placeDateHijr: "١١ ذو الحجة ١٤٤٦ هـ",
@@ -460,10 +469,10 @@
                                     </div>
                                 </div>
 
-                                {/* Compact Print Out Button - Updated with Classy Vibrant Blue */}
+                                {/* Compact Print Out Button - Classy Vibrant Blue-Cyan Gradient matching Header */}
                                 <button 
                                     onClick={triggerPrint}
-                                    class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white py-2.5 px-4 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 border border-blue-500 shadow-blue-100"
+                                    class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 active:scale-[0.98] text-white py-2.5 px-4 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 border-0 shadow-blue-100"
                                 >
                                     <i class="fa-solid fa-print text-lg animate-pulse"></i>
                                     <span>CETAK RAPOR (PRINT OUT)</span>
@@ -595,7 +604,7 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     <button 
                                         onClick={downloadExcelTemplate}
-                                        class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-blue-200 flex items-center justify-center gap-1 text-center"
+                                        class="bg-slate-50 hover:bg-slate-100 text-slate-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-slate-200 flex items-center justify-center gap-1 text-center"
                                         title="Unduh Template Excel"
                                     >
                                         <i class="fa-solid fa-cloud-download text-xs"></i> Unduh Template
@@ -646,7 +655,7 @@
                                     <div class="bg-gradient-to-r from-blue-700 to-indigo-900 text-white p-4 flex justify-between items-center">
                                         <div>
                                             <h3 class="font-bold text-lg">Kelola Nilai & Data Siswa</h3>
-                                            <p class="text-xs text-blue-200">{editingStudent.nameLatin}</p>
+                                            <p class="text-xs text-emerald-200">{editingStudent.nameLatin}</p>
                                         </div>
                                         <button 
                                             onClick={() => setEditingStudent(null)}
@@ -665,7 +674,7 @@
                                                     type="text" 
                                                     value={editingStudent.nisn}
                                                     onChange={(e) => setEditingStudent({...editingStudent, nisn: e.target.value})}
-                                                    class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-blue-500"
+                                                    class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-slate-500"
                                                     required
                                                 />
                                             </div>
@@ -956,10 +965,10 @@
                                                 </div>
                                             </div>
 
-                                            {/* Two Column Layout for Subjects (Compacted on Print, Styled with Slate/Grey Theme) */}
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow text-[11px] print:gap-2 print:text-[9.5px]" dir="rtl">
+                                            {/* Two Column Layout for Subjects (Compacted on Print with explicit print grid to prevent column collapse) */}
+                                            <div class="grid grid-cols-1 print:grid-cols-2 md:grid-cols-2 gap-4 flex-grow text-[11px] print:gap-x-4 print:gap-y-1 print:text-[9px]" dir="rtl">
                                                 
-                                                {/* Right Column: Ujian Lisan & Pelajaran Umum */}
+                                                {/* Right Column (under RTL): Ujian Lisan & Pelajaran Umum */}
                                                 <div class="space-y-3.5 flex flex-col justify-between print:space-y-2">
                                                     {/* Ujian Lisan Table */}
                                                     <div>
@@ -970,11 +979,11 @@
                                                         <table class="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
                                                             <thead>
                                                                 <tr class="bg-slate-100 text-slate-800 font-bold arabic-header text-[10px] print:text-[8.5px]">
-                                                                    <th class="border border-slate-300 p-1 text-center w-8 print:p-0.5">رقم</th>
-                                                                    <th class="border border-slate-300 p-1 text-right px-2 print:p-0.5">المواد الدراسية / Pelajaran</th>
-                                                                    <th class="border border-slate-300 p-1 text-center w-12 print:p-0.5">الدرجة</th>
-                                                                    <th class="border border-slate-300 p-1 text-center w-10 print:p-0.5">التقدير</th>
-                                                                    <th class="border border-slate-300 p-1 text-right px-2 print:p-0.5">الكتابة / Terbilang</th>
+                                                                    <th class="border border-slate-300 py-1 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
+                                                                    <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">المواد الدراسية / Pelajaran</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-12 print:py-0.5 print:px-1">الدرجة</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                    <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">الكتابة / Terbilang</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -1005,11 +1014,11 @@
                                                         <table class="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
                                                             <thead>
                                                                 <tr class="bg-slate-100 text-slate-800 font-bold arabic-header text-[10px] print:text-[8.5px]">
-                                                                    <th class="border border-slate-300 p-1 text-center w-8 print:p-0.5">رقم</th>
-                                                                    <th class="border border-slate-300 p-1 text-right px-2 print:p-0.5">المواد الدراسية / Pelajaran</th>
-                                                                    <th class="border border-slate-300 p-1 text-center w-12 print:p-0.5">الدرجة</th>
-                                                                    <th class="border border-slate-300 p-1 text-center w-10 print:p-0.5">التقدير</th>
-                                                                    <th class="border border-slate-300 p-1 text-right px-2 print:p-0.5">الكتابة / Terbilang</th>
+                                                                    <th class="border border-slate-300 py-1 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
+                                                                    <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">المواد الدراasية / Pelajaran</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-12 print:py-0.5 print:px-1">الدرجة</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                    <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">الكتابة / Terbilang</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -1032,7 +1041,7 @@
                                                     </div>
                                                 </div>
 
-                                                {/* Left Column: Ujian Tulis (Kajian Islam / Dirasah) */}
+                                                {/* Left Column (under RTL): Ujian Tulis (Kajian Islam / Dirasah) */}
                                                 <div class="flex flex-col justify-between">
                                                     <div>
                                                         <div class="arabic-header text-right font-bold text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
@@ -1042,11 +1051,11 @@
                                                         <table class="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
                                                             <thead>
                                                                 <tr class="bg-slate-100 text-slate-800 font-bold arabic-header text-[10px] print:text-[8.5px]">
-                                                                    <th class="border border-slate-300 p-1 text-center w-8 print:p-0.5">رقم</th>
-                                                                    <th class="border border-slate-300 p-1 text-right px-2 print:p-0.5">المواد الدراسية / Pelajaran</th>
-                                                                    <th class="border border-slate-300 p-1 text-center w-12 print:p-0.5">الدرجة</th>
-                                                                    <th class="border border-slate-300 p-1 text-center w-10 print:p-0.5">التقدير</th>
-                                                                    <th class="border border-slate-300 p-1 text-right px-2 print:p-0.5">الكتابة / Terbilang</th>
+                                                                    <th class="border border-slate-300 py-1 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
+                                                                    <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">المواد الدراسية / Pelajaran</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-12 print:py-0.5 print:px-1">الدرجة</th>
+                                                                    <th class="border border-slate-300 py-1 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                    <th class="border border-slate-300 py-1 px-2 text-right print:py-0.5 print:px-1.5">الكتابة / Terbilang</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -1071,8 +1080,8 @@
 
                                             </div>
 
-                                            {/* Bottom Block: Absensi Kehadiran, Kepribadian, & Hasil Nilai */}
-                                            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] print:mt-2.5 print:gap-2 print:text-[9px]" dir="rtl">
+                                            {/* Bottom Block: Absensi Kehadiran, Kepribadian, & Hasil Nilai (Explicit print grid) */}
+                                            <div class="mt-4 grid grid-cols-1 print:grid-cols-3 md:grid-cols-3 gap-3 text-[11px] print:mt-2.5 print:gap-2 print:text-[9px]" dir="rtl">
                                                 
                                                 {/* Absensi Kehadiran */}
                                                 <div>
@@ -1081,17 +1090,17 @@
                                                         <tbody>
                                                             <tr>
                                                                 <td class="border border-slate-300 p-1 px-2 text-right font-medium print:p-0.5">المرض / Sakit</td>
-                                                                <td class="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.sakit)}</td>
+                                                                <td class="border border-slate-300 p-1 text-center font-normal text-emerald-900 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.sakit)}</td>
                                                                 <td class="border border-slate-300 p-1 text-center w-12 arabic-text print:p-0.5">يوما</td>
                                                             </tr>
                                                             <tr>
                                                                 <td class="border border-slate-300 p-1 px-2 text-right font-medium print:p-0.5">الاستئذان / Izin</td>
-                                                                <td class="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.izin)}</td>
+                                                                <td class="border border-slate-300 p-1 text-center font-normal text-emerald-900 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.izin)}</td>
                                                                 <td class="border border-slate-300 p-1 text-center w-12 arabic-text print:p-0.5">يوما</td>
                                                             </tr>
                                                             <tr>
                                                                 <td class="border border-slate-300 p-1 px-2 text-right font-medium print:p-0.5">الغياب / Alpa (Tanpa Alasan)</td>
-                                                                <td class="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.alpa)}</td>
+                                                                <td class="border border-slate-300 p-1 text-center font-normal text-emerald-900 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.alpa)}</td>
                                                                 <td class="border border-slate-300 p-1 text-center w-12 arabic-text print:p-0.5">يوما</td>
                                                             </tr>
                                                         </tbody>
@@ -1143,16 +1152,16 @@
 
                                             </div>
 
-                                            {/* Signature Block */}
+                                            {/* Signature Block - Forced 3 columns on print */}
                                             <div class="mt-5 border-t border-slate-300 pt-4 print:mt-3 print:pt-2" dir="rtl">
                                                 <div class="text-right text-[10px] text-slate-600 italic mb-2 arabic-text print:text-[8.5px] print:mb-1">
                                                     تحريرا في: {schoolConfig.placeDateGreg} / {schoolConfig.placeDateHijr}
                                                 </div>
-                                                <div class="grid grid-cols-3 gap-2 text-center text-[10px] text-slate-800 leading-tight print:text-[8.5px]">
+                                                <div class="grid grid-cols-1 print:grid-cols-3 md:grid-cols-3 gap-2 text-center text-[10px] text-slate-800 leading-tight print:text-[8.5px]">
                                                     {/* Headmaster Signature */}
                                                     <div>
                                                         <div class="arabic-header font-semibold text-slate-800">رئيس للمدرسة الثانوية / Kepala SMP</div>
-                                                        <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-8">Headmaster</div>
+                                                        <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-12">Headmaster</div>
                                                         <div class="font-bold border-b border-slate-800 w-44 mx-auto pb-1 text-slate-900 font-sans print:w-36">{schoolConfig.headmaster}</div>
                                                         <div class="text-[9px] text-slate-500 mt-0.5 print:text-[7.5px]">{schoolConfig.headmasterNip}</div>
                                                     </div>
@@ -1160,7 +1169,7 @@
                                                     {/* Homeroom Teacher */}
                                                     <div>
                                                         <div class="arabic-header font-semibold text-slate-800">ولي الفصل / Wali Kelas</div>
-                                                        <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-8">Homeroom Teacher</div>
+                                                        <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-12">Homeroom Teacher</div>
                                                         <div class="font-bold border-b border-slate-800 w-44 mx-auto pb-1 text-slate-900 font-sans print:w-36">{schoolConfig.homeroomTeacher}</div>
                                                         <div class="text-[9px] text-slate-500 mt-0.5 print:text-[7.5px]">{schoolConfig.homeroomTeacherNip}</div>
                                                     </div>
@@ -1168,7 +1177,7 @@
                                                     {/* Parent / Guardian Signature */}
                                                     <div>
                                                         <div class="arabic-header font-semibold text-slate-800">ولي الأمر / Orang Tua</div>
-                                                        <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-8">Wali Santri</div>
+                                                        <div class="text-[9px] text-slate-400 uppercase tracking-wider mb-14 print:mb-12">Wali Santri</div>
                                                         <div class="font-bold border-b border-dashed border-slate-400 w-32 mx-auto pb-1 print:w-28">........................................</div>
                                                     </div>
                                                 </div>
@@ -1194,8 +1203,8 @@
                         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
                             <div>Rapor Ma'had MBS 2025 - All rights reserved.</div>
                             <div class="flex items-center gap-1">
-                                <span class="px-1.5 py-0.5 bg-slate-800 text-slate-300 text-[10px] rounded font-mono font-bold">PRO V2.7</span>
-                                <span>Vibrant Blue/Cyan Header with matching print buttons</span>
+                                <span class="px-1.5 py-0.5 bg-slate-800 text-slate-300 text-[10px] rounded font-mono font-bold">PRO V2.8</span>
+                                <span>Perfect A4 Print Grid & Vibrant Gradient Accent Added</span>
                             </div>
                         </div>
                     </footer>

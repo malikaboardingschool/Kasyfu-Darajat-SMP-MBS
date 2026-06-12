@@ -928,7 +928,7 @@
                             
                             {currentStudent ? (
                                 <div class="w-full overflow-x-auto bg-slate-200 p-2 md:p-4 rounded-2xl flex justify-center shadow-inner">
-                                    <div class="a4-page print-area bg-white text-slate-900 border shadow-md relative print:p-0 print:border-0 print:shadow-none" id="print-sheet" dir="rtl">
+                                    <div class="a4-page print-area bg-white text-slate-900 shadow-md relative print:p-0 print:border-0 print:shadow-none" id="print-sheet" dir="rtl">
                                         <div class="rapor-border print:p-0">
                                             
                                             {/* Rapor Header (RTL Kop Layout) */}
@@ -1204,9 +1204,11 @@
                                                                         </td>
                                                                         <td class="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50 print:p-0.5">{stats.average}</td>
                                                                     </tr>
-                                                                    <tr class="h-[23px] print:h-[18px]">
-                                                                        <td class="border border-slate-300 p-1.5 px-2 text-right bg-slate-50/10 print:p-0.5">&nbsp;</td>
-                                                                        <td class="border border-slate-300 p-1.5 text-center bg-slate-50/10 print:p-0.5">&nbsp;</td>
+                                                                    <tr>
+                                                                        <td colSpan="2" class="border border-slate-300 p-1.5 text-center bg-slate-50/40 print:p-1">
+                                                                            <div class="trad-arabic text-[14px] print:text-[12px] font-bold text-slate-800">منقول / غير  منقول إلى :  الفصل الثامن</div>
+                                                                            <div class="font-sans text-[10px] print:text-[9px] font-bold text-slate-700 mt-0.5">Naik / Tidak Naik Ke Kelas VIII</div>
+                                                                        </td>
                                                                     </tr>
                                                                 </tbody>
                                                             </table>

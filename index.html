@@ -121,7 +121,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 antialiased selection:bg-slate-500 selection:text-white">
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased selection:bg-slate-500 selection:text-white print:bg-white">
 
     <!-- React App Root Container -->
     <div id="app"></div>
@@ -408,16 +408,16 @@
 
             // Enhanced Print/PDF call - Directs user to Native Print to save Arabic Ligatures natively
             const handlePrintPDF = () => {
-                triggerToast("TIPS: Pada jendela Print yang muncul, ubah Tujuan/Destination menjadi 'Simpan sebagai PDF' (Save as PDF) untuk hasil kaligrafi Arab yang sempurna.", "success");
-                setTimeout(() => {
-                    window.print();
-                }, 3500);
-            };
+            triggerToast("TIPS: Pada jendela Print yang muncul, ubah Tujuan/Destination menjadi 'Simpan sebagai PDF' (Save as PDF) untuk hasil kaligrafi Arab yang sempurna.", "success");
+            setTimeout(() => {
+                window.print();
+            }, 3500);
+        };
 
-            return (
-                <div class="min-h-screen flex flex-col bg-slate-50">
-                    
-                    {/* Floating Toast Notification */}
+        return (
+            <div class="min-h-screen flex flex-col bg-slate-50 print:bg-white print:block">
+                
+                {/* Floating Toast Notification */}
                     {toast.show && (
                         <div class="fixed top-5 left-5 z-50 transition-all duration-300 transform translate-y-0 no-print">
                             <div class="flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white font-medium text-sm bg-slate-800 border-l-4 border-blue-500 max-w-md">
@@ -454,10 +454,10 @@
                         </div>
                     </header>
 
-                    {/* Main Workspace */}
-                    <main class="flex-grow max-w-7xl w-full mx-auto p-3 md:py-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        
-                        {/* Compact Control Panel (Left column, no-print) */}
+                {/* Main Workspace */}
+                <main class="flex-grow max-w-7xl w-full mx-auto p-3 md:py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 print:block print:p-0 print:m-0 print:max-w-none print:w-full">
+                    
+                    {/* Compact Control Panel (Left column, no-print) */}
                         <div class="lg:col-span-4 space-y-3.5 no-print">
                             
                             {/* Card 1: Utama */}
@@ -923,13 +923,13 @@
                             </div>
                         )}
 
-                        {/* Rapor Preview Sheet (Right column - Generates Printable Document) */}
-                        <div class="lg:col-span-8 flex flex-col items-center">
-                            
-                            {currentStudent ? (
-                                <div class="w-full overflow-x-auto bg-slate-200 p-2 md:p-4 rounded-2xl flex justify-center shadow-inner">
-                                    <div class="a4-page print-area bg-white text-slate-900 shadow-md relative print:p-0 print:border-0 print:shadow-none" id="print-sheet" dir="rtl">
-                                        <div class="rapor-border print:p-0">
+                    {/* Rapor Preview Sheet (Right column - Generates Printable Document) */}
+                    <div class="lg:col-span-8 flex flex-col items-center print:block print:w-full print:m-0">
+                        
+                        {currentStudent ? (
+                            <div class="w-full overflow-x-auto bg-slate-200 p-2 md:p-4 rounded-2xl flex justify-center shadow-inner print:p-0 print:bg-transparent print:shadow-none print:rounded-none print:overflow-visible print:block">
+                                <div class="a4-page print-area bg-white text-slate-900 shadow-md relative print:p-0 print:border-0 print:shadow-none" id="print-sheet" dir="rtl">
+                                    <div class="rapor-border print:p-0">
                                             
                                             {/* Rapor Header (RTL Kop Layout) */}
                                             <div class="print:mb-0 pt-[0.5cm] print:pt-[0.2cm]">
@@ -1273,7 +1273,7 @@
                     {/* App Footer (no-print) */}
                     <footer class="bg-slate-900 text-slate-400 text-xs py-4 px-6 border-t border-slate-800 text-center no-print">
                         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-                            <div>Rapor Ma'had MBS 2025 - All rights reserved.</div>
+                            <div>Rapor Ma'had MBS 2026 - All rights reserved.</div>
                             <div class="flex items-center gap-1">
                                 <span class="px-1.5 py-0.5 bg-slate-800 text-slate-300 text-[10px] rounded font-mono font-bold">PRO V2.9</span>
                                 <span>Strict Single-Page Print Layout with Flex height equalization</span>

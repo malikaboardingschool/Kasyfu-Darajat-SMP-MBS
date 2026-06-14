@@ -1,1270 +1,1288 @@
-import React, { useState, useEffect } from 'react';
-import { 
-    Info, Edit, Printer, Sliders, ChevronDown, 
-    FileSpreadsheet, DownloadCloud, UploadCloud, 
-    PlusCircle, X, MessageSquare, Star, Clock, 
-    PenTool, GraduationCap, UserX 
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Rapor Ma'had</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel (Penerjemah JSX ke JS biasa) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- SheetJS (Library Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-// Data list of subjects matching original PDF
-const SUBJECTS_LISAN = [
-    { id: "quran", nameAr: "القرآن الكريم", nameId: "Al Qur'an" },
-    { id: "b_arab_lisan", nameAr: "اللغة العربية", nameId: "Bahasa Arab" }, 
-    { id: "b_ingg_lisan", nameAr: "اللغة الإنجليزية", nameId: "Bahasa Inggris" }, 
-    { id: "qiraatul_kutub", nameAr: "قراءة الكتب", nameId: "Qira'atul Kutub" },
-    { id: "ubudiyah", nameAr: "العبودية", nameId: "Praktik Ibadah" },
-    { id: "khitabah", nameAr: "الخطابة", nameId: "Public Speaking" }
-];
-
-const SUBJECTS_TULIS_ISLAMIYAH = [
-    { id: "tafsir", nameAr: "التفسير", nameId: "Tafsir" },
-    { id: "hadits", nameAr: "الحديث", nameId: "Hadits" },
-    { id: "fiqih", nameAr: "الفقه", nameId: "Fiqih" },
-    { id: "akhlaq", nameAr: " الأخلاق للبنين والبنات", nameId: "Akhlaq" },
-    { id: "tauhid", nameAr: "التوحيد", nameId: "Tauhid" },
-    { id: "tarikh", nameAr: "التاريخ الإسلامي", nameId: "Tarikh Islam" },
-    { id: "nushush", nameAr: "النصوص الأدبية", nameId: "Mahfuzhot" },
-    { id: "durus_lughtah", nameAr: "دروس اللغة العربية", nameId: "Durusul Lughah" },
-    { id: "muthalaah", nameAr: "المطالعة", nameId: "Muthala'ah" },
-    { id: "tajwid", nameAr: "التجويد", nameId: "Tajwid" },
-    { id: "imla", nameAr: "الإملاء", nameId: "Imla" },
-    { id: "khat", nameAr: "الخط العربي", nameId: "Khat Arab" }
-];
-
-const SUBJECTS_UMUM = [
-    { id: "pkn", nameAr: "التربية الوطنية", nameId: "PKn" },
-    { id: "b_indo", nameAr: "اللغة الوطنية", nameId: "Bahasa Indonesia" },
-    { id: "b_ingg_umum", nameAr: "اللغة الإنجليزية", nameId: "Bahasa Inggris" },
-    { id: "matematika", nameAr: "الرياضيات", nameId: "Matematika" },
-    { id: "ipa", nameAr: "علوم الطبيعة", nameId: "IPA" },
-    { id: "ips", nameAr: "العلوم الاجتماعية", nameId: "IPS" },
-    { id: "pjok", nameAr: "التربية البدنية والرياضة", nameId: "PJOK" },
-    { id: "prakarya", nameAr: "الحرف اليدوية", nameId: "Prakarya" }
-];
-
-// Combine all fields for Excel Structure
-const ALL_SUBJECT_FIELDS = [
-    ...SUBJECTS_LISAN,
-    ...SUBJECTS_TULIS_ISLAMIYAH,
-    ...SUBJECTS_UMUM
-];
-
-// Default Mock Students
-const DEFAULT_STUDENTS = [
+    <!-- Import Map untuk React dan Lucide Icons -->
+    <script type="importmap">
     {
-        id: "1",
-        nisn: "202602015",
-        nameLatin: "Athariz Chalief Saputra",
-        nameArab: "أتاريز خليف سابوترا",
-        grades: {
-            quran: 88, b_arab_lisan: 80, b_ingg_lisan: 80, qiraatul_kutub: 80, ubudiyah: 80, khitabah: 75,
-            tafsir: 80, hadits: 80, fiqih: 80, akhlaq: 80, tauhid: 80, tarikh: 80,
-            nushush: 80, durus_lughtah: 80, muthalaah: 80, tajwid: 80, imla: 80, khat: 80,
-            pkn: 80, b_indo: 80, b_ingg_umum: 80, matematika: 80, ipa: 80, ips: 80, pjok: 80, prakarya: 80
-        },
-        attendance: { sakit: 1, izin: 2, alpa: 0 },
-        behavior: { suluk: "جيد جدا", nazhafah: "جيد جدا", muraqabah: "جيد جدا" }
-    },
-    {
-        id: "2",
-        nisn: "202602016",
-        nameLatin: "Muhammad Zidan Al-Fatih",
-        nameArab: "محمد زيدان الفاتح",
-        grades: {
-            quran: 92, b_arab_lisan: 85, b_ingg_lisan: 78, qiraatul_kutub: 82, ubudiyah: 90, khitabah: 80,
-            tafsir: 88, hadits: 84, fiqih: 86, akhlaq: 90, tauhid: 85, tarikh: 82,
-            nushush: 80, durus_lughtah: 85, muthalaah: 88, tajwid: 90, imla: 84, khat: 85,
-            pkn: 88, b_indo: 85, b_ingg_umum: 82, matematika: 76, ipa: 80, ips: 82, pjok: 90, prakarya: 85
-        },
-        attendance: { sakit: 1, izin: 2, alpa: 0 },
-        behavior: { suluk: "ممتاز", nazhafah: "جيد جدا", muraqabah: "ممتاز" }
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.330.0?deps=react@18.2.0"
+      }
     }
-];
-
-// Arabic Numbers to Words Converter Utility
-function numberToArabicWords(num) {
-    num = parseInt(num);
-    if (isNaN(num)) return "-";
-    if (num === 100) return "مائة";
-    if (num === 0) return "صفر";
+    </script>
+</head>
+<body class="bg-slate-50">
     
-    const ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
-    const tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
-    
-    if (num < 10) return ones[num];
-    if (num === 10) return "عشرة";
-    if (num < 20) {
-        const o = num % 10;
-        if (o === 1) return "أحد عشر";
-        if (o === 2) return "اثنا عشر";
-        return ones[o] + " عشر";
-    }
-    
-    const o = num % 10;
-    const t = Math.floor(num / 10);
-    
-    if (o === 0) return tens[t];
-    return ones[o] + " و" + tens[t];
-}
+    <!-- Wadah tempat React akan dimunculkan -->
+    <div id="root"></div>
 
-// Convert standard numbers (1, 2, 3) to East Arabic digits (١, ٢, ٣)
-function toArabicDigits(str) {
-    if (str === undefined || str === null) return "";
-    const idMap = {
-        '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
-        '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
-    };
-    return str.toString().replace(/[0-9]/g, function (w) {
-        return idMap[w];
-    });
-}
+    <!-- Logika Aplikasi React -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            Info, Edit, Printer, Sliders, ChevronDown, 
+            FileSpreadsheet, DownloadCloud, UploadCloud, 
+            PlusCircle, X, MessageSquare, Star, Clock, 
+            PenTool, GraduationCap, UserX 
+        } from 'lucide-react';
 
-export default function App() {
-    // Inject Fonts and Styles on Mount
-    useEffect(() => {
-        // Add Google Fonts
-        const link = document.createElement('link');
-        link.href = "https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap";
-        link.rel = "stylesheet";
-        document.head.appendChild(link);
-
-        // Add SheetJS dynamically for Excel Export/Import
-        if (!window.XLSX) {
-            const script = document.createElement('script');
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-            script.async = true;
-            document.body.appendChild(script);
-        }
-    }, []);
-
-    // State
-    const [schoolConfig, setSchoolConfig] = useState({
-        mahadName: "معهد التربية الإسلامية ماليك",
-        className: "السابع الألف",
-        classNameLatin: "Kelas VII A",
-        semester: "الثاني", 
-        semesterLatin: "Genap",
-        academicYear: "٢٠٢٥ - ٢٠٢٦ مـ",
-        homeroomTeacher: "الأستاذ محمد أزكى مولا شكور",
-        homeroomTeacherNip: "", 
-        headmaster: "الأستاذ  عبد الحليم",
-        headmasterNip: "", 
-        placeDateGreg: "تنجرانج، ١٩ يونيو ٢٠٢٦ مـ",
-        placeDateHijr: "٤ محرم ١٤٤٨ هـ",
-        useEasternArabicDigits: true
-    });
-
-    const [students, setStudents] = useState(DEFAULT_STUDENTS);
-    const [selectedStudentId, setSelectedStudentId] = useState("1");
-    const [editingStudent, setEditingStudent] = useState(null);
-    
-    // Collapsible Config Panel state
-    const [isConfigOpen, setIsConfigOpen] = useState(false);
-
-    // Custom Notification Toast state
-    const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-
-    const currentStudent = students.find(s => s.id === selectedStudentId) || students[0] || null;
-
-    // Trigger Custom Toast
-    const triggerToast = (message, type = "success") => {
-        setToast({ show: true, message, type });
-        setTimeout(() => {
-            setToast(prev => ({ ...prev, show: false }));
-        }, 4000);
-    };
-
-    const formatNum = (val) => {
-        if (val === undefined || val === null) return "";
-        return schoolConfig.useEasternArabicDigits ? toArabicDigits(val.toString()) : val.toString();
-    };
-
-    const calculateStats = (student) => {
-        if (!student) return { total: 0, average: 0 };
-        const grades = Object.values(student.grades);
-        const total = grades.reduce((sum, g) => sum + Number(g || 0), 0);
-        const average = grades.length > 0 ? (total / grades.length).toFixed(1) : 0;
-        return { total, average };
-    };
-
-    const downloadExcelTemplate = () => {
-        if (!window.XLSX) {
-            triggerToast("Library Excel sedang dimuat, coba lagi.", "error");
-            return;
-        }
-        const headers = ["NISN (Nomor Induk)", "Nama Siswa (Latin)", "Nama Siswa (Arab)"];
-        ALL_SUBJECT_FIELDS.forEach(sub => {
-            headers.push(`${sub.nameId} (${sub.id})`);
-        });
-        headers.push("Sakit", "Izin", "Alpa", "Suluk (Kelakuan)", "Nazhafah (Kebersihan)", "Muraqabah (Kedisiplinan)");
-
-        const data = [
-            headers,
-            [
-                "202602015", "Athariz Chalief Saputra", "أتاريز خليف سابوترا",
-                ...ALL_SUBJECT_FIELDS.map(() => 80),
-                1, 2, 0, "جيد جدا", "جيد جدا", "جيد جدا"
-            ],
-            [
-                "202602016", "Muhammad Zidan Al-Fatih", "محمد زيدان الفاتح",
-                ...ALL_SUBJECT_FIELDS.map(() => 85),
-                1, 2, 0, "ممتاز", "جيد جدا", "ممتاز"
-            ]
+        // Data list of subjects matching original PDF
+        const SUBJECTS_LISAN = [
+            { id: "quran", nameAr: "القرآن الكريم", nameId: "Al Qur'an" },
+            { id: "b_arab_lisan", nameAr: "اللغة العربية", nameId: "Bahasa Arab" }, 
+            { id: "b_ingg_lisan", nameAr: "اللغة الإنجليزية", nameId: "Bahasa Inggris" }, 
+            { id: "qiraatul_kutub", nameAr: "قراءة الكتب", nameId: "Qira'atul Kutub" },
+            { id: "ubudiyah", nameAr: "العبودية", nameId: "Praktik Ibadah" },
+            { id: "khitabah", nameAr: "الخطابة", nameId: "Public Speaking" }
         ];
 
-        const ws = window.XLSX.utils.aoa_to_sheet(data);
-        const wb = window.XLSX.utils.book_new();
-        window.XLSX.utils.book_append_sheet(wb, ws, "Template Rapor");
-        window.XLSX.writeFile(wb, `Template_Rapor_MBS.xlsx`);
-        triggerToast("Template Excel berhasil diunduh!", "success");
-    };
+        const SUBJECTS_TULIS_ISLAMIYAH = [
+            { id: "tafsir", nameAr: "التفسير", nameId: "Tafsir" },
+            { id: "hadits", nameAr: "الحديث", nameId: "Hadits" },
+            { id: "fiqih", nameAr: "الفقه", nameId: "Fiqih" },
+            { id: "akhlaq", nameAr: " الأخلاق للبنين والبنات", nameId: "Akhlaq" },
+            { id: "tauhid", nameAr: "التوحيد", nameId: "Tauhid" },
+            { id: "tarikh", nameAr: "التاريخ الإسلامي", nameId: "Tarikh Islam" },
+            { id: "nushush", nameAr: "النصوص الأدبية", nameId: "Mahfuzhot" },
+            { id: "durus_lughtah", nameAr: "دروس اللغة العربية", nameId: "Durusul Lughah" },
+            { id: "muthalaah", nameAr: "المطالعة", nameId: "Muthala'ah" },
+            { id: "tajwid", nameAr: "التجويد", nameId: "Tajwid" },
+            { id: "imla", nameAr: "الإملاء", nameId: "Imla" },
+            { id: "khat", nameAr: "الخط العربي", nameId: "Khat Arab" }
+        ];
 
-    const handleExcelUpload = (e) => {
-        if (!window.XLSX) {
-            triggerToast("Library Excel sedang dimuat, coba lagi.", "error");
-            return;
+        const SUBJECTS_UMUM = [
+            { id: "pkn", nameAr: "التربية الوطنية", nameId: "PKn" },
+            { id: "b_indo", nameAr: "اللغة الوطنية", nameId: "Bahasa Indonesia" },
+            { id: "b_ingg_umum", nameAr: "اللغة الإنجليزية", nameId: "Bahasa Inggris" },
+            { id: "matematika", nameAr: "الرياضيات", nameId: "Matematika" },
+            { id: "ipa", nameAr: "علوم الطبيعة", nameId: "IPA" },
+            { id: "ips", nameAr: "العلوم الاجتماعية", nameId: "IPS" },
+            { id: "pjok", nameAr: "التربية البدنية والرياضة", nameId: "PJOK" },
+            { id: "prakarya", nameAr: "الحرف اليدوية", nameId: "Prakarya" }
+        ];
+
+        const ALL_SUBJECT_FIELDS = [
+            ...SUBJECTS_LISAN,
+            ...SUBJECTS_TULIS_ISLAMIYAH,
+            ...SUBJECTS_UMUM
+        ];
+
+        const DEFAULT_STUDENTS = [
+            {
+                id: "1",
+                nisn: "202602015",
+                nameLatin: "Athariz Chalief Saputra",
+                nameArab: "أتاريز خليف سابوترا",
+                grades: {
+                    quran: 88, b_arab_lisan: 80, b_ingg_lisan: 80, qiraatul_kutub: 80, ubudiyah: 80, khitabah: 75,
+                    tafsir: 80, hadits: 80, fiqih: 80, akhlaq: 80, tauhid: 80, tarikh: 80,
+                    nushush: 80, durus_lughtah: 80, muthalaah: 80, tajwid: 80, imla: 80, khat: 80,
+                    pkn: 80, b_indo: 80, b_ingg_umum: 80, matematika: 80, ipa: 80, ips: 80, pjok: 80, prakarya: 80
+                },
+                attendance: { sakit: 1, izin: 2, alpa: 0 },
+                behavior: { suluk: "جيد جدا", nazhafah: "جيد جدا", muraqabah: "جيد جدا" }
+            },
+            {
+                id: "2",
+                nisn: "202602016",
+                nameLatin: "Muhammad Zidan Al-Fatih",
+                nameArab: "محمد زيدان الفاتح",
+                grades: {
+                    quran: 92, b_arab_lisan: 85, b_ingg_lisan: 78, qiraatul_kutub: 82, ubudiyah: 90, khitabah: 80,
+                    tafsir: 88, hadits: 84, fiqih: 86, akhlaq: 90, tauhid: 85, tarikh: 82,
+                    nushush: 80, durus_lughtah: 85, muthalaah: 88, tajwid: 90, imla: 84, khat: 85,
+                    pkn: 88, b_indo: 85, b_ingg_umum: 82, matematika: 76, ipa: 80, ips: 82, pjok: 90, prakarya: 85
+                },
+                attendance: { sakit: 1, izin: 2, alpa: 0 },
+                behavior: { suluk: "ممتاز", nazhafah: "جيد جدا", muraqabah: "ممتاز" }
+            }
+        ];
+
+        function numberToArabicWords(num) {
+            num = parseInt(num);
+            if (isNaN(num)) return "-";
+            if (num === 100) return "مائة";
+            if (num === 0) return "صفر";
+            
+            const ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
+            const tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
+            
+            if (num < 10) return ones[num];
+            if (num === 10) return "عشرة";
+            if (num < 20) {
+                const o = num % 10;
+                if (o === 1) return "أحد عشر";
+                if (o === 2) return "اثنا عشر";
+                return ones[o] + " عشر";
+            }
+            
+            const o = num % 10;
+            const t = Math.floor(num / 10);
+            
+            if (o === 0) return tens[t];
+            return ones[o] + " و" + tens[t];
         }
-        const file = e.target.files[0];
-        if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = new Uint8Array(event.target.result);
-                const workbook = window.XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const jsonData = window.XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        function toArabicDigits(str) {
+            if (str === undefined || str === null) return "";
+            const idMap = {
+                '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
+                '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩'
+            };
+            return str.toString().replace(/[0-9]/g, function (w) {
+                return idMap[w];
+            });
+        }
 
-                if (jsonData.length < 2) {
-                    triggerToast("Berkas Excel kosong atau tidak sesuai format!", "error");
+        function App() {
+            const [schoolConfig, setSchoolConfig] = useState({
+                mahadName: "معهد التربية الإسلامية ماليك",
+                className: "السابع الألف",
+                classNameLatin: "Kelas VII A",
+                semester: "الثاني", 
+                semesterLatin: "Genap",
+                academicYear: "٢٠٢٥ - ٢٠٢٦ مـ",
+                homeroomTeacher: "الأستاذ محمد أزكى مولا شكور",
+                homeroomTeacherNip: "", 
+                headmaster: "الأستاذ  عبد الحليم",
+                headmasterNip: "", 
+                placeDateGreg: "تنجرانج، ١٩ يونيو ٢٠٢٦ مـ",
+                placeDateHijr: "٤ محرم ١٤٤٨ هـ",
+                useEasternArabicDigits: true
+            });
+
+            const [students, setStudents] = useState(DEFAULT_STUDENTS);
+            const [selectedStudentId, setSelectedStudentId] = useState("1");
+            const [editingStudent, setEditingStudent] = useState(null);
+            const [isConfigOpen, setIsConfigOpen] = useState(false);
+            const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+            const currentStudent = students.find(s => s.id === selectedStudentId) || students[0] || null;
+
+            const triggerToast = (message, type = "success") => {
+                setToast({ show: true, message, type });
+                setTimeout(() => {
+                    setToast(prev => ({ ...prev, show: false }));
+                }, 4000);
+            };
+
+            const formatNum = (val) => {
+                if (val === undefined || val === null) return "";
+                return schoolConfig.useEasternArabicDigits ? toArabicDigits(val.toString()) : val.toString();
+            };
+
+            const calculateStats = (student) => {
+                if (!student) return { total: 0, average: 0 };
+                const grades = Object.values(student.grades);
+                const total = grades.reduce((sum, g) => sum + Number(g || 0), 0);
+                const average = grades.length > 0 ? (total / grades.length).toFixed(1) : 0;
+                return { total, average };
+            };
+
+            const downloadExcelTemplate = () => {
+                if (!window.XLSX) {
+                    triggerToast("Library Excel sedang dimuat, coba lagi.", "error");
                     return;
                 }
+                const headers = ["NISN (Nomor Induk)", "Nama Siswa (Latin)", "Nama Siswa (Arab)"];
+                ALL_SUBJECT_FIELDS.forEach(sub => {
+                    headers.push(`${sub.nameId} (${sub.id})`);
+                });
+                headers.push("Sakit", "Izin", "Alpa", "Suluk (Kelakuan)", "Nazhafah (Kebersihan)", "Muraqabah (Kedisiplinan)");
 
-                const headers = jsonData[0];
-                const newStudents = [];
+                const data = [
+                    headers,
+                    [
+                        "202602015", "Athariz Chalief Saputra", "أتاريز خليف سابوترا",
+                        ...ALL_SUBJECT_FIELDS.map(() => 80),
+                        1, 2, 0, "جيد جدا", "جيد جدا", "جيد جدا"
+                    ],
+                    [
+                        "202602016", "Muhammad Zidan Al-Fatih", "محمد زيدان الفاتح",
+                        ...ALL_SUBJECT_FIELDS.map(() => 85),
+                        1, 2, 0, "ممتاز", "جيد جدا", "ممتاز"
+                    ]
+                ];
 
-                for (let i = 1; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    if (!row || row.length === 0 || !row[1]) continue;
+                const ws = window.XLSX.utils.aoa_to_sheet(data);
+                const wb = window.XLSX.utils.book_new();
+                window.XLSX.utils.book_append_sheet(wb, ws, "Template Rapor");
+                window.XLSX.writeFile(wb, `Template_Rapor_MBS.xlsx`);
+                triggerToast("Template Excel berhasil diunduh!", "success");
+            };
 
-                    const nisn = String(row[0] || "");
-                    const nameLatin = String(row[1] || "");
-                    const nameArab = String(row[2] || "");
-
-                    const grades = {};
-                    let colIdx = 3;
-
-                    ALL_SUBJECT_FIELDS.forEach(sub => {
-                        grades[sub.id] = Number(row[colIdx] !== undefined ? row[colIdx] : 80);
-                        colIdx++;
-                    });
-
-                    const sakit = Number(row[colIdx] || 0); colIdx++;
-                    const izin = Number(row[colIdx] || 0); colIdx++;
-                    const alpa = Number(row[colIdx] || 0); colIdx++;
-
-                    const suluk = String(row[colIdx] || "جيد جدا"); colIdx++;
-                    const nazhafah = String(row[colIdx] || "جيد جدا"); colIdx++;
-                    const muraqabah = String(row[colIdx] || "جيد جدا");
-
-                    newStudents.push({
-                        id: String(Date.now() + i),
-                        nisn,
-                        nameLatin,
-                        nameArab,
-                        grades,
-                        attendance: { sakit, izin, alpa },
-                        behavior: { suluk, nazhafah, muraqabah }
-                    });
+            const handleExcelUpload = (e) => {
+                if (!window.XLSX) {
+                    triggerToast("Library Excel sedang dimuat, coba lagi.", "error");
+                    return;
                 }
+                const file = e.target.files[0];
+                if (!file) return;
 
-                if (newStudents.length > 0) {
-                    setStudents(newStudents);
-                    setSelectedStudentId(newStudents[0].id);
-                    triggerToast(`Berhasil mengimpor ${newStudents.length} data siswa!`, "success");
-                } else {
-                    triggerToast("Kolom Excel tidak sesuai dengan template.", "error");
-                }
-            } catch (err) {
-                console.error(err);
-                triggerToast("Gagal memproses file Excel.", "error");
-            }
-        };
-        reader.readAsArrayBuffer(file);
-        e.target.value = null; // Reset file input
-    };
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = new Uint8Array(event.target.result);
+                        const workbook = window.XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = window.XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-    const saveStudentManualEdit = (e) => {
-        e.preventDefault();
-        const updated = students.map(s => s.id === editingStudent.id ? editingStudent : s);
-        setStudents(updated);
-        setEditingStudent(null);
-        triggerToast("Perubahan data siswa berhasil disimpan!", "success");
-    };
+                        if (jsonData.length < 2) {
+                            triggerToast("Berkas Excel kosong atau tidak sesuai format!", "error");
+                            return;
+                        }
 
-    const handlePrintPDF = () => {
-        triggerToast("Mempersiapkan dokumen cetak...", "success");
-        setTimeout(() => {
-            window.print();
-        }, 1500);
-    };
+                        const headers = jsonData[0];
+                        const newStudents = [];
 
-    return (
-        <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800 antialiased selection:bg-slate-500 selection:text-white print:bg-white print:block">
-            
-            <style dangerouslySetInnerHTML={{__html: `
-                .arabic-text {
-                    font-family: 'Amiri', serif;
-                    direction: rtl;
-                }
-                .arabic-header {
-                    font-family: 'Cairo', sans-serif;
-                    direction: rtl;
-                }
-                .trad-arabic {
-                    font-family: 'Traditional Arabic', 'Amiri', serif;
-                    font-weight: 400 !important;
-                }
-                .trad-arabic-bold {
-                    font-family: 'Traditional Arabic', 'Amiri', serif;
-                    font-weight: 700 !important;
-                }
-                .a4-page {
-                    width: 210mm;
-                    min-height: 297mm;
-                    padding: 10mm 10mm; 
-                    background: white;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-                    margin: 0 auto;
-                    position: relative;
-                    box-sizing: border-box;
-                }
-                .rapor-border {
-                    border: none;
-                    outline: none;
-                    padding: 0px 5px 20px 5px;
-                    height: 100%;
-                    min-height: calc(297mm - 20mm);
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-start;
-                    row-gap: 12px;
-                }
-                @media print {
-                    @page { size: A4 portrait; margin: 0mm !important; }
-                    html, body {
-                        width: 210mm !important;
-                        height: 297mm !important;
-                        overflow: hidden !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        background: white !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
+                        for (let i = 1; i < jsonData.length; i++) {
+                            const row = jsonData[i];
+                            if (!row || row.length === 0 || !row[1]) continue;
+
+                            const nisn = String(row[0] || "");
+                            const nameLatin = String(row[1] || "");
+                            const nameArab = String(row[2] || "");
+
+                            const grades = {};
+                            let colIdx = 3;
+
+                            ALL_SUBJECT_FIELDS.forEach(sub => {
+                                grades[sub.id] = Number(row[colIdx] !== undefined ? row[colIdx] : 80);
+                                colIdx++;
+                            });
+
+                            const sakit = Number(row[colIdx] || 0); colIdx++;
+                            const izin = Number(row[colIdx] || 0); colIdx++;
+                            const alpa = Number(row[colIdx] || 0); colIdx++;
+
+                            const suluk = String(row[colIdx] || "جيد جدا"); colIdx++;
+                            const nazhafah = String(row[colIdx] || "جيد جدا"); colIdx++;
+                            const muraqabah = String(row[colIdx] || "جيد جدا");
+
+                            newStudents.push({
+                                id: String(Date.now() + i),
+                                nisn,
+                                nameLatin,
+                                nameArab,
+                                grades,
+                                attendance: { sakit, izin, alpa },
+                                behavior: { suluk, nazhafah, muraqabah }
+                            });
+                        }
+
+                        if (newStudents.length > 0) {
+                            setStudents(newStudents);
+                            setSelectedStudentId(newStudents[0].id);
+                            triggerToast(`Berhasil mengimpor ${newStudents.length} data siswa!`, "success");
+                        } else {
+                            triggerToast("Kolom Excel tidak sesuai dengan template.", "error");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        triggerToast("Gagal memproses file Excel.", "error");
                     }
-                    .no-print { display: none !important; }
-                    .print-area {
-                        width: 210mm !important;
-                        height: 296mm !important;
-                        max-height: 296mm !important;
-                        padding: 5mm 10mm !important;
-                        box-shadow: none !important;
-                        margin: 0 !important;
-                        page-break-inside: avoid !important;
-                        page-break-after: avoid !important;
-                        break-after: avoid !important;
-                        box-sizing: border-box !important;
-                        display: block !important;
-                        background: white !important;
-                        overflow: hidden !important;
-                    }
-                    .rapor-border {
-                        border: none !important;
-                        outline: none !important;
-                        padding: 0 !important;
-                        height: auto !important;
-                        max-height: none !important;
-                        display: flex !important;
-                        flex-direction: column !important;
-                        justify-content: flex-start !important; 
-                        row-gap: 2px !important;
-                        box-sizing: border-box !important;
-                    }
-                }
-                
-                /* Penegasan Ketebalan Garis Kolom & Kotak Rapor */
-                .a4-page .border-slate-300 { border-color: #475569 !important; } /* Diubah menjadi Slate-600 (Abu-abu gelap tegas) */
-                .a4-page .border-slate-400 { border-color: #0f172a !important; } /* Diubah menjadi Slate-900 (Hampir hitam solid) */
+                };
+                reader.readAsArrayBuffer(file);
+                e.target.value = null; // Reset file input
+            };
 
-                ::-webkit-scrollbar { width: 6px; }
-                ::-webkit-scrollbar-track { background: #f1f5f9; }
-                ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-                ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-            `}} />
+            const saveStudentManualEdit = (e) => {
+                e.preventDefault();
+                const updated = students.map(s => s.id === editingStudent.id ? editingStudent : s);
+                setStudents(updated);
+                setEditingStudent(null);
+                triggerToast("Perubahan data siswa berhasil disimpan!", "success");
+            };
 
-            {/* Floating Toast Notification */}
-            {toast.show && (
-                <div className="fixed top-5 left-5 z-50 transition-all duration-300 transform translate-y-0 no-print">
-                    <div className="flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white font-medium text-sm bg-slate-800 border-l-4 border-blue-500 max-w-md">
-                        <Info className="text-blue-400" size={24} />
-                        <span className="leading-relaxed">{toast.message}</span>
-                    </div>
-                </div>
-            )}
+            const handlePrintPDF = () => {
+                triggerToast("Mempersiapkan dokumen cetak...", "success");
+                setTimeout(() => {
+                    window.print();
+                }, 1500);
+            };
 
-            {/* Header bar (no-print) */}
-            <header className="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-md p-3.5 no-print">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-1 bg-white/10 rounded-full shadow-inner shrink-0">
-                            <img 
-                                src="https://iili.io/FsLlXA7.png" 
-                                alt="Logo MBS" 
-                                className="h-10 w-10 object-contain rounded-full"
-                                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100?text=MBS"; }}
-                            />
-                        </div>
-                        <div>
-                            <h1 className="font-bold text-base leading-tight">Sistem Premium Rapor Ma'had SMP MBS</h1>
-                            <p className="text-xs text-blue-100">Be Global Boarding School</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 bg-blue-600/40 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5 border border-white/20">
-                            <span className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                            Cetak A4 Ready
-                        </span>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Workspace */}
-            <main className="flex-grow max-w-7xl w-full mx-auto p-3 md:py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 print:block print:p-0 print:m-0 print:max-w-none print:w-full">
-                
-                {/* Compact Control Panel (Left column, no-print) */}
-                <div className="lg:col-span-4 space-y-3.5 no-print">
+            return (
+                <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800 antialiased selection:bg-slate-500 selection:text-white print:bg-white print:block">
                     
-                    {/* Card 1: Utama */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
-                        <div>
-                            <label className="block text-[10px] font-bold tracking-wider text-slate-400 mb-1 uppercase">PILIH SISWA:</label>
-                            <div className="flex gap-1.5">
-                                <select 
-                                    value={selectedStudentId}
-                                    onChange={(e) => setSelectedStudentId(e.target.value)}
-                                    className="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg py-1.5 px-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
-                                >
-                                    {students.map(s => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.nameLatin}
-                                        </option>
-                                    ))}
-                                </select>
-                                <button 
-                                    onClick={() => setEditingStudent(JSON.parse(JSON.stringify(currentStudent)))}
-                                    className="p-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg transition border border-slate-200 flex items-center justify-center"
-                                    title="Edit Nilai"
-                                >
-                                    <Edit size={16} />
-                                </button>
+                    <style dangerouslySetInnerHTML={{__html: `
+                        .arabic-text {
+                            font-family: 'Amiri', serif;
+                            direction: rtl;
+                        }
+                        .arabic-header {
+                            font-family: 'Cairo', sans-serif;
+                            direction: rtl;
+                        }
+                        .trad-arabic {
+                            font-family: 'Traditional Arabic', 'Amiri', serif;
+                            font-weight: 400 !important;
+                        }
+                        .trad-arabic-bold {
+                            font-family: 'Traditional Arabic', 'Amiri', serif;
+                            font-weight: 700 !important;
+                        }
+                        .a4-page {
+                            width: 210mm;
+                            min-height: 297mm;
+                            padding: 10mm 10mm; 
+                            background: white;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                            margin: 0 auto;
+                            position: relative;
+                            box-sizing: border-box;
+                        }
+                        .rapor-border {
+                            border: none;
+                            outline: none;
+                            padding: 0px 5px 20px 5px;
+                            height: 100%;
+                            min-height: calc(297mm - 20mm);
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-start;
+                            row-gap: 12px;
+                        }
+                        @media print {
+                            @page { size: A4 portrait; margin: 0mm !important; }
+                            html, body {
+                                width: 210mm !important;
+                                height: 297mm !important;
+                                overflow: hidden !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: white !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                            .no-print { display: none !important; }
+                            .print-area {
+                                width: 210mm !important;
+                                height: 296mm !important;
+                                max-height: 296mm !important;
+                                padding: 5mm 10mm !important;
+                                box-shadow: none !important;
+                                margin: 0 !important;
+                                page-break-inside: avoid !important;
+                                page-break-after: avoid !important;
+                                break-after: avoid !important;
+                                box-sizing: border-box !important;
+                                display: block !important;
+                                background: white !important;
+                                overflow: hidden !important;
+                            }
+                            .rapor-border {
+                                border: none !important;
+                                outline: none !important;
+                                padding: 0 !important;
+                                height: auto !important;
+                                max-height: none !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                                justify-content: flex-start !important; 
+                                row-gap: 2px !important;
+                                box-sizing: border-box !important;
+                            }
+                        }
+                        
+                        /* Penegasan Ketebalan Garis Kolom & Kotak Rapor */
+                        .a4-page .border-slate-300 { border-color: #475569 !important; } /* Diubah menjadi Slate-600 (Abu-abu gelap tegas) */
+                        .a4-page .border-slate-400 { border-color: #0f172a !important; } /* Diubah menjadi Slate-900 (Hampir hitam solid) */
+
+                        ::-webkit-scrollbar { width: 6px; }
+                        ::-webkit-scrollbar-track { background: #f1f5f9; }
+                        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+                        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+                    `}} />
+
+                    {/* Floating Toast Notification */}
+                    {toast.show && (
+                        <div className="fixed top-5 left-5 z-50 transition-all duration-300 transform translate-y-0 no-print">
+                            <div className="flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white font-medium text-sm bg-slate-800 border-l-4 border-blue-500 max-w-md">
+                                <Info className="text-blue-400" size={24} />
+                                <span className="leading-relaxed">{toast.message}</span>
                             </div>
                         </div>
+                    )}
 
-                        <button 
-                            onClick={handlePrintPDF}
-                            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 active:scale-[0.98] text-white py-2.5 px-4 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 border-0 shadow-blue-100"
-                        >
-                            <Printer className="text-lg animate-pulse" />
-                            <span>CETAK PDF (1 HALAMAN A4)</span>
-                        </button>
-                    </div>
+                    {/* Header bar (no-print) */}
+                    <header className="bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-md p-3.5 no-print">
+                        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-1 bg-white/10 rounded-full shadow-inner shrink-0">
+                                    <img 
+                                        src="https://iili.io/FsLlXA7.png" 
+                                        alt="Logo MBS" 
+                                        className="h-10 w-10 object-contain rounded-full"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100?text=MBS"; }}
+                                    />
+                                </div>
+                                <div>
+                                    <h1 className="font-bold text-base leading-tight">Sistem Premium Rapor Ma'had SMP MBS</h1>
+                                    <p className="text-xs text-blue-100">Be Global Boarding School</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-0.5 bg-blue-600/40 rounded-full text-[11px] font-semibold text-white flex items-center gap-1.5 border border-white/20">
+                                    <span className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                                    Cetak A4 Ready
+                                </span>
+                            </div>
+                        </div>
+                    </header>
 
-                    {/* Card 2: Pengaturan Rapor */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <button 
-                            onClick={() => setIsConfigOpen(!isConfigOpen)}
-                            className="w-full flex justify-between items-center p-3.5 text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition"
-                        >
-                            <span className="flex items-center gap-2">
-                                <Sliders size={16} className="text-blue-600" />
-                                Pengaturan Rapor
-                            </span>
-                            <ChevronDown size={14} className={`transition-transform ${isConfigOpen ? 'rotate-180' : ''}`} />
-                        </button>
+                    {/* Main Workspace */}
+                    <main className="flex-grow max-w-7xl w-full mx-auto p-3 md:py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 print:block print:p-0 print:m-0 print:max-w-none print:w-full">
                         
-                        {isConfigOpen && (
-                            <div className="p-4 border-t border-slate-100 space-y-3 text-[11px] bg-slate-50/50">
+                        {/* Compact Control Panel (Left column, no-print) */}
+                        <div className="lg:col-span-4 space-y-3.5 no-print">
+                            
+                            {/* Card 1: Utama */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-3">
+                                <div>
+                                    <label className="block text-[10px] font-bold tracking-wider text-slate-400 mb-1 uppercase">PILIH SISWA:</label>
+                                    <div className="flex gap-1.5">
+                                        <select 
+                                            value={selectedStudentId}
+                                            onChange={(e) => setSelectedStudentId(e.target.value)}
+                                            className="flex-grow bg-slate-50 border border-slate-300 text-slate-800 rounded-lg py-1.5 px-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                                        >
+                                            {students.map(s => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.nameLatin}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button 
+                                            onClick={() => setEditingStudent(JSON.parse(JSON.stringify(currentStudent)))}
+                                            className="p-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg transition border border-slate-200 flex items-center justify-center"
+                                            title="Edit Nilai"
+                                        >
+                                            <Edit size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={handlePrintPDF}
+                                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 active:scale-[0.98] text-white py-2.5 px-4 rounded-xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 border-0 shadow-blue-100"
+                                >
+                                    <Printer className="text-lg animate-pulse" />
+                                    <span>CETAK PDF (1 HALAMAN A4)</span>
+                                </button>
+                            </div>
+
+                            {/* Card 2: Pengaturan Rapor */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                                <button 
+                                    onClick={() => setIsConfigOpen(!isConfigOpen)}
+                                    className="w-full flex justify-between items-center p-3.5 text-left font-bold text-xs text-slate-800 hover:bg-slate-50 transition"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Sliders size={16} className="text-blue-600" />
+                                        Pengaturan Rapor
+                                    </span>
+                                    <ChevronDown size={14} className={`transition-transform ${isConfigOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {isConfigOpen && (
+                                    <div className="p-4 border-t border-slate-100 space-y-3 text-[11px] bg-slate-50/50">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block font-bold text-slate-500 mb-0.5">NAMA KELAS (ARAB)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={schoolConfig.className}
+                                                    onChange={(e) => setSchoolConfig({...schoolConfig, className: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block font-bold text-slate-500 mb-0.5">SEMESTER (ARAB)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={schoolConfig.semester}
+                                                    onChange={(e) => setSchoolConfig({...schoolConfig, semester: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block font-bold text-slate-500 mb-0.5">NAMA KELAS (LATIN)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={schoolConfig.classNameLatin}
+                                                    onChange={(e) => setSchoolConfig({...schoolConfig, classNameLatin: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block font-bold text-slate-500 mb-0.5">SEMESTER (LATIN)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={schoolConfig.semesterLatin}
+                                                    onChange={(e) => setSchoolConfig({...schoolConfig, semesterLatin: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block font-bold text-slate-500 mb-0.5">TAHUN AJARAN</label>
+                                            <input 
+                                                type="text" 
+                                                value={schoolConfig.academicYear}
+                                                onChange={(e) => setSchoolConfig({...schoolConfig, academicYear: e.target.value})}
+                                                className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block font-bold text-slate-500 mb-0.5">NAMA WALI KELAS</label>
+                                            <select 
+                                                value={schoolConfig.homeroomTeacher}
+                                                onChange={(e) => setSchoolConfig({...schoolConfig, homeroomTeacher: e.target.value})}
+                                                className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs text-right cursor-pointer bg-white"
+                                                dir="rtl"
+                                            >
+                                                <option value="الأستاذ محمد أزكى مولا شكور">الأستاذ محمد أزكى مولا شكور</option>
+                                                <option value="الأستاذ أحمد ريحان مثقف">الأستاذ أحمد ريحان مثقف</option>
+                                                <option value="السيدة شريفة عفيفة">السيدة شريفة عفيفة</option>
+                                                <option value="السيدة الحاجة تاني زينية">السيدة الحاجة تاني زينية</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block font-bold text-slate-500 mb-0.5">NAMA KEPALA SEKOLAH</label>
+                                            <input 
+                                                type="text" 
+                                                value={schoolConfig.headmaster}
+                                                onChange={(e) => setSchoolConfig({...schoolConfig, headmaster: e.target.value})}
+                                                className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block font-bold text-slate-500 mb-0.5">TANGGAL HIJRIAH</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={schoolConfig.placeDateHijr}
+                                                    onChange={(e) => setSchoolConfig({...schoolConfig, placeDateHijr: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-md px-2 py-1 text-slate-800 text-xs"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block font-bold text-slate-500 mb-0.5">TANGGAL MASEHI</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={schoolConfig.placeDateGreg}
+                                                    onChange={(e) => setSchoolConfig({...schoolConfig, placeDateGreg: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-md px-2 py-1 text-slate-800 text-xs"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 pt-1 border-t border-slate-200">
+                                            <input 
+                                                type="checkbox" 
+                                                id="useArDigits"
+                                                checked={schoolConfig.useEasternArabicDigits}
+                                                onChange={(e) => setSchoolConfig({...schoolConfig, useEasternArabicDigits: e.target.checked})}
+                                                className="rounded border-slate-300 text-slate-600 focus:ring-slate-500 h-3.5 w-3.5 cursor-pointer"
+                                            />
+                                            <label htmlFor="useArDigits" className="text-[10px] font-semibold text-slate-600 cursor-pointer">
+                                                Gunakan Angka Arab Timur (١، ٢، ٣)
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Card 3: Integrasi Data Excel */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-2.5">
+                                <h3 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                                    <FileSpreadsheet className="text-blue-600" size={16} />
+                                    Integrasi Data Excel
+                                </h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className="block font-bold text-slate-500 mb-0.5">NAMA KELAS (ARAB)</label>
-                                        <input 
-                                            type="text" 
-                                            value={schoolConfig.className}
-                                            onChange={(e) => setSchoolConfig({...schoolConfig, className: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block font-bold text-slate-500 mb-0.5">SEMESTER (ARAB)</label>
-                                        <input 
-                                            type="text" 
-                                            value={schoolConfig.semester}
-                                            onChange={(e) => setSchoolConfig({...schoolConfig, semester: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block font-bold text-slate-500 mb-0.5">NAMA KELAS (LATIN)</label>
-                                        <input 
-                                            type="text" 
-                                            value={schoolConfig.classNameLatin}
-                                            onChange={(e) => setSchoolConfig({...schoolConfig, classNameLatin: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block font-bold text-slate-500 mb-0.5">SEMESTER (LATIN)</label>
-                                        <input 
-                                            type="text" 
-                                            value={schoolConfig.semesterLatin}
-                                            onChange={(e) => setSchoolConfig({...schoolConfig, semesterLatin: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block font-bold text-slate-500 mb-0.5">TAHUN AJARAN</label>
-                                    <input 
-                                        type="text" 
-                                        value={schoolConfig.academicYear}
-                                        onChange={(e) => setSchoolConfig({...schoolConfig, academicYear: e.target.value})}
-                                        className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-bold text-slate-500 mb-0.5">NAMA WALI KELAS</label>
-                                    <select 
-                                        value={schoolConfig.homeroomTeacher}
-                                        onChange={(e) => setSchoolConfig({...schoolConfig, homeroomTeacher: e.target.value})}
-                                        className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs text-right cursor-pointer bg-white"
-                                        dir="rtl"
+                                    <button 
+                                        onClick={downloadExcelTemplate}
+                                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-blue-200 flex items-center justify-center gap-1 text-center"
+                                        title="Unduh Template Excel"
                                     >
-                                        <option value="الأستاذ محمد أزكى مولا شكور">الأستاذ محمد أزكى مولا شكور</option>
-                                        <option value="الأستاذ أحمد ريحان مثقف">الأستاذ أحمد ريحان مثقف</option>
-                                        <option value="السيدة شريفة عفيفة">السيدة شريفة عفيفة</option>
-                                        <option value="السيدة الحاجة تاني زينية">السيدة الحاجة تاني زينية</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block font-bold text-slate-500 mb-0.5">NAMA KEPALA SEKOLAH</label>
-                                    <input 
-                                        type="text" 
-                                        value={schoolConfig.headmaster}
-                                        onChange={(e) => setSchoolConfig({...schoolConfig, headmaster: e.target.value})}
-                                        className="w-full border border-slate-300 rounded-md px-2 py-1 font-medium text-slate-900 text-xs"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className="block font-bold text-slate-500 mb-0.5">TANGGAL HIJRIAH</label>
+                                        <DownloadCloud size={14} /> Unduh Template
+                                    </button>
+                                    <label className="cursor-pointer bg-slate-50 hover:bg-slate-100 text-slate-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-slate-300 flex items-center justify-center gap-1 text-center">
+                                        <UploadCloud size={14} className="text-blue-600" /> Unggah Excel
                                         <input 
-                                            type="text" 
-                                            value={schoolConfig.placeDateHijr}
-                                            onChange={(e) => setSchoolConfig({...schoolConfig, placeDateHijr: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-md px-2 py-1 text-slate-800 text-xs"
+                                            type="file" 
+                                            accept=".xlsx, .xls" 
+                                            onChange={handleExcelUpload} 
+                                            className="hidden" 
                                         />
-                                    </div>
-                                    <div>
-                                        <label className="block font-bold text-slate-500 mb-0.5">TANGGAL MASEHI</label>
-                                        <input 
-                                            type="text" 
-                                            value={schoolConfig.placeDateGreg}
-                                            onChange={(e) => setSchoolConfig({...schoolConfig, placeDateGreg: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-md px-2 py-1 text-slate-800 text-xs"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 pt-1 border-t border-slate-200">
-                                    <input 
-                                        type="checkbox" 
-                                        id="useArDigits"
-                                        checked={schoolConfig.useEasternArabicDigits}
-                                        onChange={(e) => setSchoolConfig({...schoolConfig, useEasternArabicDigits: e.target.checked})}
-                                        className="rounded border-slate-300 text-slate-600 focus:ring-slate-500 h-3.5 w-3.5 cursor-pointer"
-                                    />
-                                    <label htmlFor="useArDigits" className="text-[10px] font-semibold text-slate-600 cursor-pointer">
-                                        Gunakan Angka Arab Timur (١، ٢، ٣)
                                     </label>
                                 </div>
                             </div>
-                        )}
-                    </div>
 
-                    {/* Card 3: Integrasi Data Excel */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 space-y-2.5">
-                        <h3 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                            <FileSpreadsheet className="text-blue-600" size={16} />
-                            Integrasi Data Excel
-                        </h3>
-                        <div className="grid grid-cols-2 gap-2">
                             <button 
-                                onClick={downloadExcelTemplate}
-                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-blue-200 flex items-center justify-center gap-1 text-center"
-                                title="Unduh Template Excel"
+                                onClick={() => {
+                                    const newId = String(Date.now());
+                                    const defaultGrades = {};
+                                    ALL_SUBJECT_FIELDS.forEach(s => defaultGrades[s.id] = 80);
+                                    const newStd = {
+                                        id: newId,
+                                        nisn: "102200" + Math.floor(Math.random() * 900),
+                                        nameLatin: "Santri Baru",
+                                        nameArab: "طالب جديد",
+                                        grades: defaultGrades,
+                                        attendance: { sakit: 0, izin: 0, alpa: 0 },
+                                        behavior: { suluk: "جيد جدا", nazhafah: "جيد جدا", muraqabah: "جيد جدا" }
+                                    };
+                                    setStudents([...students, newStd]);
+                                    setSelectedStudentId(newId);
+                                    setEditingStudent(newStd);
+                                    triggerToast("Siswa baru berhasil ditambahkan!", "success");
+                                }}
+                                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3 rounded-lg font-bold text-[10px] transition border border-slate-300 flex items-center justify-center gap-1"
                             >
-                                <DownloadCloud size={14} /> Unduh Template
+                                <PlusCircle size={16} /> Tambah Siswa Baru
                             </button>
-                            <label className="cursor-pointer bg-slate-50 hover:bg-slate-100 text-slate-700 py-1.5 px-2 rounded-lg text-[10px] font-semibold transition border border-slate-300 flex items-center justify-center gap-1 text-center">
-                                <UploadCloud size={14} className="text-blue-600" /> Unggah Excel
-                                <input 
-                                    type="file" 
-                                    accept=".xlsx, .xls" 
-                                    onChange={handleExcelUpload} 
-                                    className="hidden" 
-                                />
-                            </label>
+
                         </div>
-                    </div>
 
-                    <button 
-                        onClick={() => {
-                            const newId = String(Date.now());
-                            const defaultGrades = {};
-                            ALL_SUBJECT_FIELDS.forEach(s => defaultGrades[s.id] = 80);
-                            const newStd = {
-                                id: newId,
-                                nisn: "102200" + Math.floor(Math.random() * 900),
-                                nameLatin: "Santri Baru",
-                                nameArab: "طالب جديد",
-                                grades: defaultGrades,
-                                attendance: { sakit: 0, izin: 0, alpa: 0 },
-                                behavior: { suluk: "جيد جدا", nazhafah: "جيد جدا", muraqabah: "جيد جدا" }
-                            };
-                            setStudents([...students, newStd]);
-                            setSelectedStudentId(newId);
-                            setEditingStudent(newStd);
-                            triggerToast("Siswa baru berhasil ditambahkan!", "success");
-                        }}
-                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3 rounded-lg font-bold text-[10px] transition border border-slate-300 flex items-center justify-center gap-1"
-                    >
-                        <PlusCircle size={16} /> Tambah Siswa Baru
-                    </button>
-
-                </div>
-
-                {/* Interactive Excel/Form Editor Pop-Up/Modal (no-print) */}
-                {editingStudent && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                            <div className="bg-gradient-to-r from-blue-700 to-indigo-900 text-white p-4 flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-bold text-lg">Kelola Nilai & Data Siswa</h3>
-                                    <p className="text-xs text-emerald-200">{editingStudent.nameLatin}</p>
-                                </div>
-                                <button 
-                                    onClick={() => setEditingStudent(null)}
-                                    className="text-white hover:text-red-200 font-bold"
-                                >
-                                    <X size={24} />
-                                </button>
-                            </div>
-                            
-                            <form onSubmit={saveStudentManualEdit} className="p-6 overflow-y-auto space-y-6">
-                                {/* Row Identitas */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-600 mb-1">Nomor Induk / NISN</label>
-                                        <input 
-                                            type="text" 
-                                            value={editingStudent.nisn}
-                                            onChange={(e) => setEditingStudent({...editingStudent, nisn: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-slate-500"
-                                            required
-                                        />
+                        {/* Interactive Excel/Form Editor Pop-Up/Modal (no-print) */}
+                        {editingStudent && (
+                            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                                    <div className="bg-gradient-to-r from-blue-700 to-indigo-900 text-white p-4 flex justify-between items-center">
+                                        <div>
+                                            <h3 className="font-bold text-lg">Kelola Nilai & Data Siswa</h3>
+                                            <p className="text-xs text-emerald-200">{editingStudent.nameLatin}</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => setEditingStudent(null)}
+                                            className="text-white hover:text-red-200 font-bold"
+                                        >
+                                            <X size={24} />
+                                        </button>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap (Latin)</label>
-                                        <input 
-                                            type="text" 
-                                            value={editingStudent.nameLatin}
-                                            onChange={(e) => setEditingStudent({...editingStudent, nameLatin: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-blue-500"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-600 mb-1 text-right">الاسم بالكامل (Nama Arab)</label>
-                                        <input 
-                                            type="text" 
-                                            value={editingStudent.nameArab}
-                                            onChange={(e) => setEditingStudent({...editingStudent, nameArab: e.target.value})}
-                                            className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-blue-500 text-right font-semibold"
-                                            dir="rtl"
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                                    
+                                    <form onSubmit={saveStudentManualEdit} className="p-6 overflow-y-auto space-y-6">
+                                        {/* Row Identitas */}
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1">Nomor Induk / NISN</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editingStudent.nisn}
+                                                    onChange={(e) => setEditingStudent({...editingStudent, nisn: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-slate-500"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap (Latin)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editingStudent.nameLatin}
+                                                    onChange={(e) => setEditingStudent({...editingStudent, nameLatin: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-blue-500"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-600 mb-1 text-right">الاسم بالكامل (Nama Arab)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editingStudent.nameArab}
+                                                    onChange={(e) => setEditingStudent({...editingStudent, nameArab: e.target.value})}
+                                                    className="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-blue-500 text-right font-semibold"
+                                                    dir="rtl"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
 
-                                {/* Nilai Ujian Lisan & Kepribadian */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                                    {/* Lisan */}
-                                    <div>
-                                        <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                                            <MessageSquare size={16} className="text-blue-600" /> Ujian Lisan (الشفهي)
-                                        </h4>
-                                        <div className="space-y-2.5">
-                                            {SUBJECTS_LISAN.map(sub => (
-                                                <div key={sub.id} className="flex items-center justify-between gap-2">
-                                                    <span className="text-xs font-medium text-slate-700">{sub.nameId}</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-slate-400 arabic-text">{sub.nameAr}</span>
-                                                        <input 
-                                                            type="number" 
-                                                            min="0" 
-                                                            max="100"
-                                                            value={editingStudent.grades[sub.id]}
-                                                            onChange={(e) => {
-                                                                const gr = {...editingStudent.grades};
-                                                                gr[sub.id] = Number(e.target.value);
-                                                                setEditingStudent({...editingStudent, grades: gr});
-                                                            }}
-                                                            className="w-16 border border-slate-300 rounded p-1 text-center font-semibold focus:ring-blue-500"
-                                                        />
+                                        {/* Nilai Ujian Lisan & Kepribadian */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                                            {/* Lisan */}
+                                            <div>
+                                                <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                                                    <MessageSquare size={16} className="text-blue-600" /> Ujian Lisan (الشفهي)
+                                                </h4>
+                                                <div className="space-y-2.5">
+                                                    {SUBJECTS_LISAN.map(sub => (
+                                                        <div key={sub.id} className="flex items-center justify-between gap-2">
+                                                            <span className="text-xs font-medium text-slate-700">{sub.nameId}</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs text-slate-400 arabic-text">{sub.nameAr}</span>
+                                                                <input 
+                                                                    type="number" 
+                                                                    min="0" 
+                                                                    max="100"
+                                                                    value={editingStudent.grades[sub.id]}
+                                                                    onChange={(e) => {
+                                                                        const gr = {...editingStudent.grades};
+                                                                        gr[sub.id] = Number(e.target.value);
+                                                                        setEditingStudent({...editingStudent, grades: gr});
+                                                                    }}
+                                                                    className="w-16 border border-slate-300 rounded p-1 text-center font-semibold focus:ring-blue-500"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Kepribadian & Presensi */}
+                                            <div className="space-y-5">
+                                                <div>
+                                                    <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                                                        <Star size={16} className="text-blue-600" /> Kepribadian (السلوك)
+                                                    </h4>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1">SULUK (Karakter)</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={editingStudent.behavior.suluk}
+                                                                onChange={(e) => {
+                                                                    const b = {...editingStudent.behavior, suluk: e.target.value};
+                                                                    setEditingStudent({...editingStudent, behavior: b});
+                                                                }}
+                                                                className="w-full border border-slate-300 rounded p-1.5 text-center text-xs arabic-text"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1">NAZHAFAH (Bersih)</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={editingStudent.behavior.nazhafah}
+                                                                onChange={(e) => {
+                                                                    const b = {...editingStudent.behavior, nazhafah: e.target.value};
+                                                                    setEditingStudent({...editingStudent, behavior: b});
+                                                                }}
+                                                                className="w-full border border-slate-300 rounded p-1.5 text-center text-xs arabic-text"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1">MURAQABAH (Disiplin)</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={editingStudent.behavior.muraqabah}
+                                                                onChange={(e) => {
+                                                                    const b = {...editingStudent.behavior, muraqabah: e.target.value};
+                                                                    setEditingStudent({...editingStudent, behavior: b});
+                                                                }}
+                                                                className="w-full border border-slate-300 rounded p-1.5 text-center text-xs arabic-text"
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
 
-                                    {/* Kepribadian & Presensi */}
-                                    <div className="space-y-5">
-                                        <div>
+                                                <div>
+                                                    <h4 className="font-bold text-sm text-blue-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                                                        <Clock size={16} className="text-blue-600" /> Absensi Kehadiran (الغياب)
+                                                    </h4>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1">SAKIT</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={editingStudent.attendance.sakit}
+                                                                onChange={(e) => {
+                                                                    const att = {...editingStudent.attendance, sakit: Number(e.target.value)};
+                                                                    setEditingStudent({...editingStudent, attendance: att});
+                                                                }}
+                                                                className="w-full border border-slate-300 rounded p-1.5 text-center text-sm font-semibold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1">IZIN</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={editingStudent.attendance.izin}
+                                                                onChange={(e) => {
+                                                                    const att = {...editingStudent.attendance, izin: Number(e.target.value)};
+                                                                    setEditingStudent({...editingStudent, attendance: att});
+                                                                }}
+                                                                className="w-full border border-slate-300 rounded p-1.5 text-center text-sm font-semibold"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-semibold text-slate-500 mb-1">ALPA</label>
+                                                            <input 
+                                                                type="number" 
+                                                                value={editingStudent.attendance.alpa}
+                                                                onChange={(e) => {
+                                                                    const att = {...editingStudent.attendance, alpa: Number(e.target.value)};
+                                                                    setEditingStudent({...editingStudent, attendance: att});
+                                                                }}
+                                                                className="w-full border border-slate-300 rounded p-1.5 text-center text-sm font-semibold"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Nilai Ujian Tulis (Pesantren) */}
+                                        <div className="pt-4 border-t border-slate-100">
                                             <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                                                <Star size={16} className="text-blue-600" /> Kepribadian (السلوك)
+                                                <PenTool size={16} className="text-blue-600" /> Ujian Tulis: Kajian Islam & Bahasa Arab (التحريري)
                                             </h4>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">SULUK (Karakter)</label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={editingStudent.behavior.suluk}
-                                                        onChange={(e) => {
-                                                            const b = {...editingStudent.behavior, suluk: e.target.value};
-                                                            setEditingStudent({...editingStudent, behavior: b});
-                                                        }}
-                                                        className="w-full border border-slate-300 rounded p-1.5 text-center text-xs arabic-text"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">NAZHAFAH (Bersih)</label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={editingStudent.behavior.nazhafah}
-                                                        onChange={(e) => {
-                                                            const b = {...editingStudent.behavior, nazhafah: e.target.value};
-                                                            setEditingStudent({...editingStudent, behavior: b});
-                                                        }}
-                                                        className="w-full border border-slate-300 rounded p-1.5 text-center text-xs arabic-text"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">MURAQABAH (Disiplin)</label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={editingStudent.behavior.muraqabah}
-                                                        onChange={(e) => {
-                                                            const b = {...editingStudent.behavior, muraqabah: e.target.value};
-                                                            setEditingStudent({...editingStudent, behavior: b});
-                                                        }}
-                                                        className="w-full border border-slate-300 rounded p-1.5 text-center text-xs arabic-text"
-                                                    />
-                                                </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
+                                                {SUBJECTS_TULIS_ISLAMIYAH.map(sub => (
+                                                    <div key={sub.id} className="flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-medium text-slate-700">{sub.nameId}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-slate-400 arabic-text">{sub.nameAr}</span>
+                                                            <input 
+                                                                type="number" 
+                                                                min="0" 
+                                                                max="100"
+                                                                value={editingStudent.grades[sub.id]}
+                                                                onChange={(e) => {
+                                                                    const gr = {...editingStudent.grades};
+                                                                    gr[sub.id] = Number(e.target.value);
+                                                                    setEditingStudent({...editingStudent, grades: gr});
+                                                                }}
+                                                                className="w-16 border border-slate-300 rounded p-1 text-center font-semibold focus:ring-blue-500"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <h4 className="font-bold text-sm text-blue-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                                                <Clock size={16} className="text-blue-600" /> Absensi Kehadiran (الغياب)
+                                        {/* Nilai Pelajaran Umum */}
+                                        <div className="pt-4 border-t border-slate-100">
+                                            <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                                                <GraduationCap size={16} className="text-blue-600" /> Pelajaran Umum (المواد العامة)
                                             </h4>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">SAKIT</label>
-                                                    <input 
-                                                        type="number" 
-                                                        value={editingStudent.attendance.sakit}
-                                                        onChange={(e) => {
-                                                            const att = {...editingStudent.attendance, sakit: Number(e.target.value)};
-                                                            setEditingStudent({...editingStudent, attendance: att});
-                                                        }}
-                                                        className="w-full border border-slate-300 rounded p-1.5 text-center text-sm font-semibold"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">IZIN</label>
-                                                    <input 
-                                                        type="number" 
-                                                        value={editingStudent.attendance.izin}
-                                                        onChange={(e) => {
-                                                            const att = {...editingStudent.attendance, izin: Number(e.target.value)};
-                                                            setEditingStudent({...editingStudent, attendance: att});
-                                                        }}
-                                                        className="w-full border border-slate-300 rounded p-1.5 text-center text-sm font-semibold"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">ALPA</label>
-                                                    <input 
-                                                        type="number" 
-                                                        value={editingStudent.attendance.alpa}
-                                                        onChange={(e) => {
-                                                            const att = {...editingStudent.attendance, alpa: Number(e.target.value)};
-                                                            setEditingStudent({...editingStudent, attendance: att});
-                                                        }}
-                                                        className="w-full border border-slate-300 rounded p-1.5 text-center text-sm font-semibold"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Nilai Ujian Tulis (Pesantren) */}
-                                <div className="pt-4 border-t border-slate-100">
-                                    <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                                        <PenTool size={16} className="text-blue-600" /> Ujian Tulis: Kajian Islam & Bahasa Arab (التحريري)
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
-                                        {SUBJECTS_TULIS_ISLAMIYAH.map(sub => (
-                                            <div key={sub.id} className="flex items-center justify-between gap-2">
-                                                <span className="text-xs font-medium text-slate-700">{sub.nameId}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-slate-400 arabic-text">{sub.nameAr}</span>
-                                                    <input 
-                                                        type="number" 
-                                                        min="0" 
-                                                        max="100"
-                                                        value={editingStudent.grades[sub.id]}
-                                                        onChange={(e) => {
-                                                            const gr = {...editingStudent.grades};
-                                                            gr[sub.id] = Number(e.target.value);
-                                                            setEditingStudent({...editingStudent, grades: gr});
-                                                        }}
-                                                        className="w-16 border border-slate-300 rounded p-1 text-center font-semibold focus:ring-blue-500"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Nilai Pelajaran Umum */}
-                                <div className="pt-4 border-t border-slate-100">
-                                    <h4 className="font-bold text-sm text-slate-800 mb-3 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                                        <GraduationCap size={16} className="text-blue-600" /> Pelajaran Umum (المواد العامة)
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
-                                        {SUBJECTS_UMUM.map(sub => (
-                                            <div key={sub.id} className="flex items-center justify-between gap-2">
-                                                <span className="text-xs font-medium text-slate-700">{sub.nameId}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-slate-400 arabic-text">{sub.nameAr}</span>
-                                                    <input 
-                                                        type="number" 
-                                                        min="0" 
-                                                        max="100"
-                                                        value={editingStudent.grades[sub.id]}
-                                                        onChange={(e) => {
-                                                            const gr = {...editingStudent.grades};
-                                                            gr[sub.id] = Number(e.target.value);
-                                                            setEditingStudent({...editingStudent, grades: gr});
-                                                        }}
-                                                        className="w-16 border border-slate-300 rounded p-1 text-center font-semibold focus:ring-blue-500"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Footer Modal */}
-                                <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setEditingStudent(null)}
-                                        className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button 
-                                        type="submit" 
-                                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md transition"
-                                    >
-                                        Simpan Perubahan
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Rapor Preview Sheet (Right column - Generates Printable Document) */}
-                <div className="lg:col-span-8 flex flex-col items-center print:block print:w-full print:m-0">
-                    
-                    {currentStudent ? (
-                        <div className="w-full overflow-x-auto bg-slate-200 p-2 md:p-4 rounded-2xl flex justify-center shadow-inner print:p-0 print:bg-transparent print:shadow-none print:rounded-none print:overflow-visible print:block">
-                            <div className="a4-page print-area bg-white text-slate-900 shadow-md relative print:p-0 print:border-0 print:shadow-none" id="print-sheet" dir="rtl">
-                                <div className="rapor-border print:p-0">
-                                        
-                                        {/* Rapor Header (RTL Kop Layout) */}
-                                        <div className="print:mb-0 pt-[0.5cm] print:pt-[0.2cm]">
-                                            <div className="flex justify-between items-center border-b-2 border-slate-400 pb-3 mb-6 print:pb-1.5 print:mb-1.5" dir="rtl">
-                                                {/* Right Side: Pesantren Logo */}
-                                                <div className="text-right w-1/3 pr-8 print:pr-4 animate-fade-in">
-                                                    <img 
-                                                        src="https://iili.io/FsLlXA7.png" 
-                                                        alt="Logo Pesantren" 
-                                                        className="h-16 w-auto object-contain inline-block print:h-12"
-                                                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100?text=MBS+Logo"; }}
-                                                    />
-                                                </div>
-
-                                                {/* Center: Title "كشف الدرجات", School Name, and Academic Year */}
-                                                <div className="text-center w-1/3">
-                                                    <div className="arabic-header text-slate-900 font-black text-2xl tracking-wide leading-none print:text-xl">كشف الدرجات</div>
-                                                    <div className="arabic-text text-sm text-slate-700 font-bold mt-1.5 leading-tight print:text-xs print:mt-1">{schoolConfig.mahadName}</div>
-                                                    <div className="trad-arabic text-xs text-slate-600 mt-0.5 print:text-[10px]">العام الدراسي : {schoolConfig.academicYear}</div>
-                                                </div>
-
-                                                {/* Left Side: Judul Laporan Hasil Belajar */}
-                                                <div className="text-left w-1/3 font-sans" dir="ltr">
-                                                    <div className="font-bold text-[11px] md:text-xs text-slate-800 uppercase tracking-wider leading-tight print:text-[9.5px]">Laporan Hasil Belajar (Rapor)</div>
-                                                    <div className="text-[9px] md:text-[10px] text-slate-500 font-semibold tracking-wide mt-0.5 whitespace-nowrap print:text-[8px]">Malika Islamic Boarding School</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Student Identity Block */}
-                                            <div className="border-2 border-slate-400 rounded-xl p-3 mb-4 bg-slate-50/70 arabic-text print:p-1.5 print:mb-1.5" dir="rtl">
-                                                <div className="grid grid-cols-3 gap-4 print:gap-2 text-right items-center">
-                                                    {/* Column 1: Name */}
-                                                    <div className="border-l-2 border-slate-300 pl-3 print:pl-2">
-                                                        <span className="font-bold text-slate-700 text-[15px] print:text-[13px]">الاسم : </span>
-                                                        <span className="font-bold text-slate-900 text-[16px] print:text-[14px]">{currentStudent.nameArab}</span>
-                                                        <span className="block text-[12px] font-bold text-slate-700 font-sans text-right leading-none mt-1.5 print:text-[10.5px]" dir="ltr">{currentStudent.nameLatin}</span>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
+                                                {SUBJECTS_UMUM.map(sub => (
+                                                    <div key={sub.id} className="flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-medium text-slate-700">{sub.nameId}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-slate-400 arabic-text">{sub.nameAr}</span>
+                                                            <input 
+                                                                type="number" 
+                                                                min="0" 
+                                                                max="100"
+                                                                value={editingStudent.grades[sub.id]}
+                                                                onChange={(e) => {
+                                                                    const gr = {...editingStudent.grades};
+                                                                    gr[sub.id] = Number(e.target.value);
+                                                                    setEditingStudent({...editingStudent, grades: gr});
+                                                                }}
+                                                                className="w-16 border border-slate-300 rounded p-1 text-center font-semibold focus:ring-blue-500"
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    {/* Column 2: Register Number */}
-                                                    <div className="border-l-2 border-slate-300 pl-3 print:pl-2">
-                                                        <span className="font-bold text-slate-700 text-[15px] print:text-[13px]">رقم دفتر القيد : </span>
-                                                        <span className="font-bold text-slate-900 font-sans text-[15px] print:text-[13px]">{formatNum(currentStudent.nisn)}</span>
-                                                    </div>
-                                                    {/* Column 3: Level / Class / Semester (Combined) */}
-                                                    <div>
-                                                        <span className="font-bold text-slate-700 text-[15px] print:text-[13px]">الفصل / المستوى : </span>
-                                                        <span className="font-bold text-slate-900 text-[15px] print:text-[13px]">{schoolConfig.className} / {schoolConfig.semester}</span>
-                                                        <span className="block text-[12px] font-bold text-slate-700 font-sans text-right leading-none mt-1.5 print:text-[10.5px]" dir="ltr">{schoolConfig.classNameLatin} / {schoolConfig.semesterLatin}</span>
-                                                    </div>
-                                                </div>
+                                                ))}
                                             </div>
                                         </div>
 
-                                        {/* Two Column Layout for Subjects */}
-                                        <div className="grid grid-cols-1 print:grid-cols-2 md:grid-cols-2 gap-4 text-[11px] print:gap-x-3 print:gap-y-1 print:text-[9px]" dir="rtl">
-                                            
-                                            {/* Right Column (under RTL): Ujian Lisan & Pelajaran Umum */}
-                                            <div className="space-y-3 flex flex-col justify-start print:space-y-1">
-                                                {/* Ujian Lisan Table */}
-                                                <div>
-                                                    <div className="text-right text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
-                                                        <div>
-                                                            <span className="arabic-header font-bold text-sm print:text-xs">التعبير الشفهي</span>
-                                                            <span className="font-sans font-bold text-[10px] print:text-[9px] ml-1">/ Ujian Lisan</span>
-                                                        </div>
-                                                        <span className="text-[9px] uppercase tracking-wider font-sans text-slate-400 print:text-[8px]">Oral Exam</span>
-                                                    </div>
-                                                    <table className="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
-                                                        <thead>
-                                                            <tr className="bg-slate-100 text-slate-800 font-bold arabic-header text-[11px] print:text-[9.5px]">
-                                                                <th className="border border-slate-300 py-1.5 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
-                                                                <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
-                                                                    <span className="arabic-header text-[12px] print:text-[10px]">المواد الدراسية</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Pelajaran</span>
-                                                                </th>
-                                                                <th className="border border-slate-300 py-1.5 px-1 text-center w-12 print:py-0.5 print:px-1">النتيجة</th>
-                                                                <th className="border border-slate-300 py-1.5 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
-                                                                <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
-                                                                    <span className="arabic-header text-[12px] print:text-[10px]">الكتابة</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Terbilang</span>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {SUBJECTS_LISAN.map((sub, idx) => {
-                                                                const score = currentStudent.grades[sub.id] || 0;
-                                                                return (
-                                                                    <tr key={sub.id} className="hover:bg-slate-50 transition">
-                                                                        <td className="border border-slate-300 p-1 text-center text-slate-500 font-sans print:py-0">{formatNum(idx + 1)}</td>
-                                                                        <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[16px] print:text-[14px] print:py-0">
-                                                                            {sub.nameAr} <span className="block text-[9px] text-slate-500 font-sans text-right print:text-[7.5px] mt-0.5">{sub.nameId}</span>
-                                                                        </td>
-                                                                        <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-800 font-sans print:py-0">{formatNum(score)}</td>
-                                                                        <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-700 font-sans print:py-0">{score}</td>
-                                                                        <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[18px] print:text-[14px] leading-none text-slate-800 print:py-0">{numberToArabicWords(score)}</td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                {/* Pelajaran Umum Table */}
-                                                <div>
-                                                    <div className="text-right text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
-                                                        <div>
-                                                            <span className="arabic-header font-bold text-sm print:text-xs">المواد العامة</span>
-                                                            <span className="font-sans font-bold text-[10px] print:text-[9px] ml-1">/ Pelajaran Umum</span>
-                                                        </div>
-                                                        <span className="text-[9px] uppercase tracking-wider font-sans text-slate-400 print:text-[8px]">General Subjects</span>
-                                                    </div>
-                                                    <table className="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
-                                                        <thead>
-                                                            <tr className="bg-slate-100 text-slate-800 font-bold arabic-header text-[11px] print:text-[9.5px]">
-                                                                <th className="border border-slate-300 py-1.5 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
-                                                                <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
-                                                                    <span className="arabic-header text-[12px] print:text-[10px]">المواد الدراسية</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Pelajaran</span>
-                                                                </th>
-                                                                <th className="border border-slate-300 py-1.5 px-1 text-center w-12 print:py-0.5 print:px-1">النتيجة</th>
-                                                                <th className="border border-slate-300 py-1.5 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
-                                                                <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
-                                                                    <span className="arabic-header text-[12px] print:text-[10px]">الكتابة</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Terbilang</span>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {SUBJECTS_UMUM.map((sub, idx) => {
-                                                                const score = currentStudent.grades[sub.id] || 0;
-                                                                return (
-                                                                    <tr key={sub.id} className="hover:bg-slate-50 transition">
-                                                                        <td className="border border-slate-300 p-1 text-center text-slate-500 font-sans print:py-0">{formatNum(idx + 1)}</td>
-                                                                        <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[16px] print:text-[14px] print:py-0">
-                                                                            {sub.nameAr} <span className="block text-[9px] text-slate-500 font-sans text-right print:text-[7.5px] mt-0.5">{sub.nameId}</span>
-                                                                        </td>
-                                                                        <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-800 font-sans print:py-0">{formatNum(score)}</td>
-                                                                        <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-700 font-sans print:py-0">{score}</td>
-                                                                        <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[18px] print:text-[14px] leading-none text-slate-800 print:py-0">{numberToArabicWords(score)}</td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
-                                            {/* Left Column (under RTL): Ujian Tulis (Kajian Islam / Dirasah) */}
-                                            <div className="space-y-3 flex flex-col justify-start print:space-y-1">
-                                                <div>
-                                                    <div className="text-right text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
-                                                        <div>
-                                                            <span className="arabic-header font-bold text-sm print:text-xs">التعبير التحريري</span>
-                                                            <span className="font-sans font-bold text-[10px] print:text-[9px] ml-1">/ Ujian Tulis</span>
-                                                        </div>
-                                                        <span className="text-[9px] uppercase tracking-wider font-sans text-slate-400 print:text-[8px]">Written Exam</span>
-                                                    </div>
-                                                    <table className="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
-                                                        <thead>
-                                                            <tr className="bg-slate-100 text-slate-800 font-bold arabic-header text-[11px] print:text-[9.5px]">
-                                                                <th className="border border-slate-300 py-1.5 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
-                                                                <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
-                                                                    <span className="arabic-header text-[12px] print:text-[10px]">المواد الدراسية</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Pelajaran</span>
-                                                                </th>
-                                                                <th className="border border-slate-300 py-1.5 px-1 text-center w-12 print:py-0.5 print:px-1">النتيجة</th>
-                                                                <th className="border border-slate-300 py-1.5 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
-                                                                <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
-                                                                    <span className="arabic-header text-[12px] print:text-[10px]">الكتابة</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Terbilang</span>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {SUBJECTS_TULIS_ISLAMIYAH.map((sub, idx) => {
-                                                                const score = currentStudent.grades[sub.id] || 0;
-                                                                return (
-                                                                    <tr key={sub.id} className="hover:bg-slate-50 transition">
-                                                                        <td className="border border-slate-300 p-1 text-center text-slate-500 font-sans print:py-0">{formatNum(idx + 1)}</td>
-                                                                        <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[16px] print:text-[14px] print:py-0">
-                                                                            {sub.nameAr} <span className="block text-[9px] text-slate-500 font-sans text-right print:text-[7.5px] mt-0.5">{sub.nameId}</span>
-                                                                        </td>
-                                                                        <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-800 font-sans print:py-0">{formatNum(score)}</td>
-                                                                        <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-700 font-sans print:py-0">{score}</td>
-                                                                        <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[18px] print:text-[14px] leading-none text-slate-800 print:py-0">{numberToArabicWords(score)}</td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
+                                        {/* Footer Modal */}
+                                        <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setEditingStudent(null)}
+                                                className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                                            >
+                                                Batal
+                                            </button>
+                                            <button 
+                                                type="submit" 
+                                                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md transition"
+                                            >
+                                                Simpan Perubahan
+                                            </button>
                                         </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
 
-                                        {/* Bottom Block */}
-                                        <div className="mt-2 grid grid-cols-1 print:grid-cols-3 md:grid-cols-3 gap-3 text-[11px] print:mt-1 print:gap-2 print:text-[9px]" dir="rtl">
-                                            
-                                            {/* Absensi Kehadiran */}
-                                            <div className="flex flex-col h-full">
-                                                <div className="text-right text-slate-800 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">
-                                                    <span className="arabic-header font-bold text-[14px] print:text-[12px]">أيام الغياب</span> <span className="font-sans text-[10px] print:text-[9px] font-bold ml-1">/ Absensi</span>
-                                                </div>
-                                                <table className="w-full flex-grow border-collapse border border-slate-300 text-right print:text-[8.5px]" dir="rtl">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
-                                                                <span className="trad-arabic text-[13px] print:text-[11px]">المرض</span> <span className="font-sans text-[10px] print:text-[9px]">/ Sakit</span>
-                                                            </td>
-                                                            <td className="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.sakit)}</td>
-                                                            <td className="border border-slate-300 p-1 text-center w-12 trad-arabic text-[13px] print:text-[11px] print:p-0.5">يوما</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
-                                                                <span className="trad-arabic text-[13px] print:text-[11px]">الاستئذان</span> <span className="font-sans text-[10px] print:text-[9px]">/ Izin</span>
-                                                            </td>
-                                                            <td className="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.izin)}</td>
-                                                            <td className="border border-slate-300 p-1 text-center w-12 trad-arabic text-[13px] print:text-[11px] print:p-0.5">يوما</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
-                                                                <span className="trad-arabic text-[13px] print:text-[11px]">الغياب</span> <span className="font-sans text-[10px] print:text-[9px]">/ Alpa (Tanpa Alasan)</span>
-                                                            </td>
-                                                            <td className="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.alpa)}</td>
-                                                            <td className="border border-slate-300 p-1 text-center w-12 trad-arabic text-[13px] print:text-[11px] print:p-0.5">يوما</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                        {/* Rapor Preview Sheet (Right column - Generates Printable Document) */}
+                        <div className="lg:col-span-8 flex flex-col items-center print:block print:w-full print:m-0">
+                            
+                            {currentStudent ? (
+                                <div className="w-full overflow-x-auto bg-slate-200 p-2 md:p-4 rounded-2xl flex justify-center shadow-inner print:p-0 print:bg-transparent print:shadow-none print:rounded-none print:overflow-visible print:block">
+                                    <div className="a4-page print-area bg-white text-slate-900 shadow-md relative print:p-0 print:border-0 print:shadow-none" id="print-sheet" dir="rtl">
+                                        <div className="rapor-border print:p-0">
+                                                
+                                                {/* Rapor Header (RTL Kop Layout) */}
+                                                <div className="print:mb-0 pt-[0.5cm] print:pt-[0.2cm]">
+                                                    <div className="flex justify-between items-center border-b-2 border-slate-400 pb-3 mb-6 print:pb-1.5 print:mb-1.5" dir="rtl">
+                                                        {/* Right Side: Pesantren Logo */}
+                                                        <div className="text-right w-1/3 pr-8 print:pr-4 animate-fade-in">
+                                                            <img 
+                                                                src="https://iili.io/FsLlXA7.png" 
+                                                                alt="Logo Pesantren" 
+                                                                className="h-16 w-auto object-contain inline-block print:h-12"
+                                                                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100?text=MBS+Logo"; }}
+                                                            />
+                                                        </div>
 
-                                            {/* Kepribadian / Sikap */}
-                                            <div className="flex flex-col h-full">
-                                                <div className="text-right text-slate-800 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">
-                                                    <span className="arabic-header font-bold text-[14px] print:text-[12px]">الشخصية</span> <span className="font-sans text-[10px] print:text-[9px] font-bold ml-1">/ Kepribadian</span>
-                                                </div>
-                                                <table className="w-full flex-grow border-collapse border border-slate-300 text-right print:text-[8.5px]" dir="rtl">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
-                                                                <span className="trad-arabic text-[13px] print:text-[11px]">السلوك</span> <span className="font-sans text-[10px] print:text-[9px]">/ Karakter & Akhlaq</span>
-                                                            </td>
-                                                            <td className="border border-slate-300 p-1 text-center text-slate-800 trad-arabic text-[13px] print:text-[11px] print:p-0.5">{currentStudent.behavior.suluk}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
-                                                                <span className="trad-arabic text-[13px] print:text-[11px]">النظافة</span> <span className="font-sans text-[10px] print:text-[9px]">/ Kebersihan</span>
-                                                            </td>
-                                                            <td className="border border-slate-300 p-1 text-center text-slate-800 trad-arabic text-[13px] print:text-[11px] print:p-0.5">{currentStudent.behavior.nazhafah}</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
-                                                                <span className="trad-arabic text-[13px] print:text-[11px]">المواظبة</span> <span className="font-sans text-[10px] print:text-[9px]">/ Kedisiplinan</span>
-                                                            </td>
-                                                            <td className="border border-slate-300 p-1 text-center text-slate-800 trad-arabic text-[13px] print:text-[11px] print:p-0.5">{currentStudent.behavior.muraqabah}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                        {/* Center: Title "كشف الدرجات", School Name, and Academic Year */}
+                                                        <div className="text-center w-1/3">
+                                                            <div className="arabic-header text-slate-900 font-black text-2xl tracking-wide leading-none print:text-xl">كشف الدرجات</div>
+                                                            <div className="arabic-text text-sm text-slate-700 font-bold mt-1.5 leading-tight print:text-xs print:mt-1">{schoolConfig.mahadName}</div>
+                                                            <div className="trad-arabic text-xs text-slate-600 mt-0.5 print:text-[10px]">العام الدراسي : {schoolConfig.academicYear}</div>
+                                                        </div>
 
-                                            {/* Hasil Nilai Akademik Summary */}
-                                            <div className="flex flex-col h-full">
-                                                <div className="text-right text-slate-800 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">
-                                                    <span className="arabic-header font-bold text-[14px] print:text-[12px]">نتائج القيمة</span> <span className="font-sans text-[10px] print:text-[9px] font-bold ml-1">/ Nilai Akademik</span>
+                                                        {/* Left Side: Judul Laporan Hasil Belajar */}
+                                                        <div className="text-left w-1/3 font-sans" dir="ltr">
+                                                            <div className="font-bold text-[11px] md:text-xs text-slate-800 uppercase tracking-wider leading-tight print:text-[9.5px]">Laporan Hasil Belajar (Rapor)</div>
+                                                            <div className="text-[9px] md:text-[10px] text-slate-500 font-semibold tracking-wide mt-0.5 whitespace-nowrap print:text-[8px]">Malika Islamic Boarding School</div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Student Identity Block */}
+                                                    <div className="border-2 border-slate-400 rounded-xl p-3 mb-4 bg-slate-50/70 arabic-text print:p-1.5 print:mb-1.5" dir="rtl">
+                                                        <div className="grid grid-cols-3 gap-4 print:gap-2 text-right items-center">
+                                                            {/* Column 1: Name */}
+                                                            <div className="border-l-2 border-slate-300 pl-3 print:pl-2">
+                                                                <span className="font-bold text-slate-700 text-[15px] print:text-[13px]">الاسم : </span>
+                                                                <span className="font-bold text-slate-900 text-[16px] print:text-[14px]">{currentStudent.nameArab}</span>
+                                                                <span className="block text-[12px] font-bold text-slate-700 font-sans text-right leading-none mt-1.5 print:text-[10.5px]" dir="ltr">{currentStudent.nameLatin}</span>
+                                                            </div>
+                                                            {/* Column 2: Register Number */}
+                                                            <div className="border-l-2 border-slate-300 pl-3 print:pl-2">
+                                                                <span className="font-bold text-slate-700 text-[15px] print:text-[13px]">رقم دفتر القيد : </span>
+                                                                <span className="font-bold text-slate-900 font-sans text-[15px] print:text-[13px]">{formatNum(currentStudent.nisn)}</span>
+                                                            </div>
+                                                            {/* Column 3: Level / Class / Semester (Combined) */}
+                                                            <div>
+                                                                <span className="font-bold text-slate-700 text-[15px] print:text-[13px]">الفصل / المستوى : </span>
+                                                                <span className="font-bold text-slate-900 text-[15px] print:text-[13px]">{schoolConfig.className} / {schoolConfig.semester}</span>
+                                                                <span className="block text-[12px] font-bold text-slate-700 font-sans text-right leading-none mt-1.5 print:text-[10.5px]" dir="ltr">{schoolConfig.classNameLatin} / {schoolConfig.semesterLatin}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                {(() => {
-                                                    const stats = calculateStats(currentStudent);
-                                                    return (
+
+                                                {/* Two Column Layout for Subjects */}
+                                                <div className="grid grid-cols-1 print:grid-cols-2 md:grid-cols-2 gap-4 text-[11px] print:gap-x-3 print:gap-y-1 print:text-[9px]" dir="rtl">
+                                                    
+                                                    {/* Right Column (under RTL): Ujian Lisan & Pelajaran Umum */}
+                                                    <div className="space-y-3 flex flex-col justify-start print:space-y-1">
+                                                        {/* Ujian Lisan Table */}
+                                                        <div>
+                                                            <div className="text-right text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
+                                                                <div>
+                                                                    <span className="arabic-header font-bold text-sm print:text-xs">التعبير الشفهي</span>
+                                                                    <span className="font-sans font-bold text-[10px] print:text-[9px] ml-1">/ Ujian Lisan</span>
+                                                                </div>
+                                                                <span className="text-[9px] uppercase tracking-wider font-sans text-slate-400 print:text-[8px]">Oral Exam</span>
+                                                            </div>
+                                                            <table className="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
+                                                                <thead>
+                                                                    <tr className="bg-slate-100 text-slate-800 font-bold arabic-header text-[11px] print:text-[9.5px]">
+                                                                        <th className="border border-slate-300 py-1.5 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
+                                                                            <span className="arabic-header text-[12px] print:text-[10px]">المواد الدراسية</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Pelajaran</span>
+                                                                        </th>
+                                                                        <th className="border border-slate-300 py-1.5 px-1 text-center w-12 print:py-0.5 print:px-1">النتيجة</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
+                                                                            <span className="arabic-header text-[12px] print:text-[10px]">الكتابة</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Terbilang</span>
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {SUBJECTS_LISAN.map((sub, idx) => {
+                                                                        const score = currentStudent.grades[sub.id] || 0;
+                                                                        return (
+                                                                            <tr key={sub.id} className="hover:bg-slate-50 transition">
+                                                                                <td className="border border-slate-300 p-1 text-center text-slate-500 font-sans print:py-0">{formatNum(idx + 1)}</td>
+                                                                                <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[16px] print:text-[14px] print:py-0">
+                                                                                    {sub.nameAr} <span className="block text-[9px] text-slate-500 font-sans text-right print:text-[7.5px] mt-0.5">{sub.nameId}</span>
+                                                                                </td>
+                                                                                <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-800 font-sans print:py-0">{formatNum(score)}</td>
+                                                                                <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-700 font-sans print:py-0">{score}</td>
+                                                                                <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[18px] print:text-[14px] leading-none text-slate-800 print:py-0">{numberToArabicWords(score)}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+
+                                                        {/* Pelajaran Umum Table */}
+                                                        <div>
+                                                            <div className="text-right text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
+                                                                <div>
+                                                                    <span className="arabic-header font-bold text-sm print:text-xs">المواد العامة</span>
+                                                                    <span className="font-sans font-bold text-[10px] print:text-[9px] ml-1">/ Pelajaran Umum</span>
+                                                                </div>
+                                                                <span className="text-[9px] uppercase tracking-wider font-sans text-slate-400 print:text-[8px]">General Subjects</span>
+                                                            </div>
+                                                            <table className="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
+                                                                <thead>
+                                                                    <tr className="bg-slate-100 text-slate-800 font-bold arabic-header text-[11px] print:text-[9.5px]">
+                                                                        <th className="border border-slate-300 py-1.5 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
+                                                                            <span className="arabic-header text-[12px] print:text-[10px]">المواد الدراسية</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Pelajaran</span>
+                                                                        </th>
+                                                                        <th className="border border-slate-300 py-1.5 px-1 text-center w-12 print:py-0.5 print:px-1">النتيجة</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
+                                                                            <span className="arabic-header text-[12px] print:text-[10px]">الكتابة</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Terbilang</span>
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {SUBJECTS_UMUM.map((sub, idx) => {
+                                                                        const score = currentStudent.grades[sub.id] || 0;
+                                                                        return (
+                                                                            <tr key={sub.id} className="hover:bg-slate-50 transition">
+                                                                                <td className="border border-slate-300 p-1 text-center text-slate-500 font-sans print:py-0">{formatNum(idx + 1)}</td>
+                                                                                <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[16px] print:text-[14px] print:py-0">
+                                                                                    {sub.nameAr} <span className="block text-[9px] text-slate-500 font-sans text-right print:text-[7.5px] mt-0.5">{sub.nameId}</span>
+                                                                                </td>
+                                                                                <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-800 font-sans print:py-0">{formatNum(score)}</td>
+                                                                                <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-700 font-sans print:py-0">{score}</td>
+                                                                                <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[18px] print:text-[14px] leading-none text-slate-800 print:py-0">{numberToArabicWords(score)}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Left Column (under RTL): Ujian Tulis (Kajian Islam / Dirasah) */}
+                                                    <div className="space-y-3 flex flex-col justify-start print:space-y-1">
+                                                        <div>
+                                                            <div className="text-right text-slate-700 mb-1 border-r-4 border-slate-400 pr-1.5 flex justify-between items-center print:pr-1 print:mb-0.5">
+                                                                <div>
+                                                                    <span className="arabic-header font-bold text-sm print:text-xs">التعبير التحريري</span>
+                                                                    <span className="font-sans font-bold text-[10px] print:text-[9px] ml-1">/ Ujian Tulis</span>
+                                                                </div>
+                                                                <span className="text-[9px] uppercase tracking-wider font-sans text-slate-400 print:text-[8px]">Written Exam</span>
+                                                            </div>
+                                                            <table className="w-full border-collapse border border-slate-300 text-right print:text-[9px]" dir="rtl">
+                                                                <thead>
+                                                                    <tr className="bg-slate-100 text-slate-800 font-bold arabic-header text-[11px] print:text-[9.5px]">
+                                                                        <th className="border border-slate-300 py-1.5 px-1.5 text-center w-8 print:py-0.5 print:px-1">رقم</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
+                                                                            <span className="arabic-header text-[12px] print:text-[10px]">المواد الدراسية</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Pelajaran</span>
+                                                                        </th>
+                                                                        <th className="border border-slate-300 py-1.5 px-1 text-center w-12 print:py-0.5 print:px-1">النتيجة</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-1 text-center w-10 print:py-0.5 print:px-1">التقدير</th>
+                                                                        <th className="border border-slate-300 py-1.5 px-2 text-right print:py-0.5 print:px-1.5">
+                                                                            <span className="arabic-header text-[12px] print:text-[10px]">الكتابة</span> <span className="font-sans text-[9px] print:text-[8px] font-bold">/ Terbilang</span>
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {SUBJECTS_TULIS_ISLAMIYAH.map((sub, idx) => {
+                                                                        const score = currentStudent.grades[sub.id] || 0;
+                                                                        return (
+                                                                            <tr key={sub.id} className="hover:bg-slate-50 transition">
+                                                                                <td className="border border-slate-300 p-1 text-center text-slate-500 font-sans print:py-0">{formatNum(idx + 1)}</td>
+                                                                                <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[16px] print:text-[14px] print:py-0">
+                                                                                    {sub.nameAr} <span className="block text-[9px] text-slate-500 font-sans text-right print:text-[7.5px] mt-0.5">{sub.nameId}</span>
+                                                                                </td>
+                                                                                <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-800 font-sans print:py-0">{formatNum(score)}</td>
+                                                                                <td className="border border-slate-300 p-1 text-[12px] print:text-[10px] text-center font-normal text-slate-700 font-sans print:py-0">{score}</td>
+                                                                                <td className="border border-slate-300 p-1 text-right px-2 trad-arabic text-[18px] print:text-[14px] leading-none text-slate-800 print:py-0">{numberToArabicWords(score)}</td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                                {/* Bottom Block */}
+                                                <div className="mt-2 grid grid-cols-1 print:grid-cols-3 md:grid-cols-3 gap-3 text-[11px] print:mt-1 print:gap-2 print:text-[9px]" dir="rtl">
+                                                    
+                                                    {/* Absensi Kehadiran */}
+                                                    <div className="flex flex-col h-full">
+                                                        <div className="text-right text-slate-800 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">
+                                                            <span className="arabic-header font-bold text-[14px] print:text-[12px]">أيام الغياب</span> <span className="font-sans text-[10px] print:text-[9px] font-bold ml-1">/ Absensi</span>
+                                                        </div>
                                                         <table className="w-full flex-grow border-collapse border border-slate-300 text-right print:text-[8.5px]" dir="rtl">
                                                             <tbody>
                                                                 <tr>
-                                                                    <td className="border border-slate-300 p-1.5 px-2 text-right bg-slate-50 print:p-0.5">
-                                                                        <span className="trad-arabic text-[13px] print:text-[11px] font-semibold text-slate-800">مجموع الدرجات</span> <span className="font-sans text-[10px] print:text-[9px] font-bold text-slate-700">/ Total Nilai</span>
+                                                                    <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
+                                                                        <span className="trad-arabic text-[13px] print:text-[11px]">المرض</span> <span className="font-sans text-[10px] print:text-[9px]">/ Sakit</span>
                                                                     </td>
-                                                                    <td className="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50 print:p-0.5">{stats.total}</td>
+                                                                    <td className="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.sakit)}</td>
+                                                                    <td className="border border-slate-300 p-1 text-center w-12 trad-arabic text-[13px] print:text-[11px] print:p-0.5">يوما</td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td className="border border-slate-300 p-1.5 px-2 text-right bg-slate-50 print:p-0.5">
-                                                                        <span className="trad-arabic text-[13px] print:text-[11px] font-semibold text-slate-800">المعدل</span> <span className="font-sans text-[10px] print:text-[9px] font-bold text-slate-700">/ Rata-rata</span>
+                                                                    <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
+                                                                        <span className="trad-arabic text-[13px] print:text-[11px]">الاستئذان</span> <span className="font-sans text-[10px] print:text-[9px]">/ Izin</span>
                                                                     </td>
-                                                                    <td className="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50 print:p-0.5">{stats.average}</td>
+                                                                    <td className="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.izin)}</td>
+                                                                    <td className="border border-slate-300 p-1 text-center w-12 trad-arabic text-[13px] print:text-[11px] print:p-0.5">يوما</td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td colSpan="2" className="border border-slate-300 p-1.5 text-center bg-slate-50/40 print:p-1">
-                                                                        <div className="trad-arabic text-[14px] print:text-[12px] font-bold text-slate-800">منقول / غير  منقول إلى :  الفصل الثامن</div>
-                                                                        <div className="font-sans text-[10px] print:text-[9px] font-bold text-slate-700 mt-0.5">Naik / Tidak Naik Ke Kelas VIII</div>
+                                                                    <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
+                                                                        <span className="trad-arabic text-[13px] print:text-[11px]">الغياب</span> <span className="font-sans text-[10px] print:text-[9px]">/ Alpa (Tanpa Alasan)</span>
                                                                     </td>
+                                                                    <td className="border border-slate-300 p-1 text-center font-normal text-slate-800 w-16 font-sans print:p-0.5">{formatNum(currentStudent.attendance.alpa)}</td>
+                                                                    <td className="border border-slate-300 p-1 text-center w-12 trad-arabic text-[13px] print:text-[11px] print:p-0.5">يوما</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
-                                                    );
-                                                })()}
-                                            </div>
+                                                    </div>
 
+                                                    {/* Kepribadian / Sikap */}
+                                                    <div className="flex flex-col h-full">
+                                                        <div className="text-right text-slate-800 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">
+                                                            <span className="arabic-header font-bold text-[14px] print:text-[12px]">الشخصية</span> <span className="font-sans text-[10px] print:text-[9px] font-bold ml-1">/ Kepribadian</span>
+                                                        </div>
+                                                        <table className="w-full flex-grow border-collapse border border-slate-300 text-right print:text-[8.5px]" dir="rtl">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
+                                                                        <span className="trad-arabic text-[13px] print:text-[11px]">السلوك</span> <span className="font-sans text-[10px] print:text-[9px]">/ Karakter & Akhlaq</span>
+                                                                    </td>
+                                                                    <td className="border border-slate-300 p-1 text-center text-slate-800 trad-arabic text-[13px] print:text-[11px] print:p-0.5">{currentStudent.behavior.suluk}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
+                                                                        <span className="trad-arabic text-[13px] print:text-[11px]">النظافة</span> <span className="font-sans text-[10px] print:text-[9px]">/ Kebersihan</span>
+                                                                    </td>
+                                                                    <td className="border border-slate-300 p-1 text-center text-slate-800 trad-arabic text-[13px] print:text-[11px] print:p-0.5">{currentStudent.behavior.nazhafah}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className="border border-slate-300 p-1 px-2 text-right print:p-0.5">
+                                                                        <span className="trad-arabic text-[13px] print:text-[11px]">المواظبة</span> <span className="font-sans text-[10px] print:text-[9px]">/ Kedisiplinan</span>
+                                                                    </td>
+                                                                    <td className="border border-slate-300 p-1 text-center text-slate-800 trad-arabic text-[13px] print:text-[11px] print:p-0.5">{currentStudent.behavior.muraqabah}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+
+                                                    {/* Hasil Nilai Akademik Summary */}
+                                                    <div className="flex flex-col h-full">
+                                                        <div className="text-right text-slate-800 mb-1 border-r-4 border-slate-400 pr-1.5 print:pr-1">
+                                                            <span className="arabic-header font-bold text-[14px] print:text-[12px]">نتائج القيمة</span> <span className="font-sans text-[10px] print:text-[9px] font-bold ml-1">/ Nilai Akademik</span>
+                                                        </div>
+                                                        {(() => {
+                                                            const stats = calculateStats(currentStudent);
+                                                            return (
+                                                                <table className="w-full flex-grow border-collapse border border-slate-300 text-right print:text-[8.5px]" dir="rtl">
+                                                                    <tbody>
+                                                                        <tr>
+                                                                            <td className="border border-slate-300 p-1.5 px-2 text-right bg-slate-50 print:p-0.5">
+                                                                                <span className="trad-arabic text-[13px] print:text-[11px] font-semibold text-slate-800">مجموع الدرجات</span> <span className="font-sans text-[10px] print:text-[9px] font-bold text-slate-700">/ Total Nilai</span>
+                                                                            </td>
+                                                                            <td className="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50 print:p-0.5">{stats.total}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td className="border border-slate-300 p-1.5 px-2 text-right bg-slate-50 print:p-0.5">
+                                                                                <span className="trad-arabic text-[13px] print:text-[11px] font-semibold text-slate-800">المعدل</span> <span className="font-sans text-[10px] print:text-[9px] font-bold text-slate-700">/ Rata-rata</span>
+                                                                            </td>
+                                                                            <td className="border border-slate-300 p-1.5 text-center font-normal text-slate-800 font-sans bg-slate-50 print:p-0.5">{stats.average}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td colSpan="2" className="border border-slate-300 p-1.5 text-center bg-slate-50/40 print:p-1">
+                                                                                <div className="trad-arabic text-[14px] print:text-[12px] font-bold text-slate-800">منقول / غير  منقول إلى :  الفصل الثامن</div>
+                                                                                <div className="font-sans text-[10px] print:text-[9px] font-bold text-slate-700 mt-0.5">Naik / Tidak Naik Ke Kelas VIII</div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            );
+                                                        })()}
+                                                    </div>
+
+                                                </div>
+
+                                                {/* Signature Block */}
+                                                <div className="mt-2 border-t border-slate-300 pt-2 print:mt-1.5 print:pt-1.5" dir="rtl">
+                                                    <div className="text-right text-[11px] text-slate-600 mb-3 print:text-[9.5px] print:mb-1.5">
+                                                        <span className="trad-arabic text-[14px] print:text-[12px]">تحريرا في:</span> <span className="font-sans text-[11px] print:text-[10px]">{schoolConfig.placeDateGreg} <span className="trad-arabic text-[14px] print:text-[12px]">/</span> {schoolConfig.placeDateHijr}</span>
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-3 gap-2 text-center text-slate-800 leading-tight">
+                                                        
+                                                        {/* Headmaster Signature */}
+                                                        <div>
+                                                            <div className="mb-32 print:mb-[3cm] font-semibold text-slate-800">
+                                                                <span className="arabic-header font-bold text-[14px] print:text-[12px]">رئيس المدرسة الثانوية</span> 
+                                                                <span className="font-sans text-[12px] print:text-[10.5px]"> / Kepala SMP</span>
+                                                            </div>
+                                                            <div className="border-b border-slate-800 w-44 mx-auto pb-1 text-emerald-950 arabic-header font-bold text-[13px] print:text-[11px] print:w-36">{schoolConfig.headmaster}</div>
+                                                        </div>
+
+                                                        {/* Homeroom Teacher */}
+                                                        <div>
+                                                            <div className="mb-32 print:mb-[3cm] font-semibold text-slate-800">
+                                                                <span className="arabic-header font-bold text-[14px] print:text-[12px]">ولي الفصل</span> 
+                                                                <span className="font-sans text-[12px] print:text-[10.5px]"> / Wali Kelas</span>
+                                                            </div>
+                                                            <div className="border-b border-slate-800 w-44 mx-auto pb-1 text-emerald-950 arabic-header font-bold text-[13px] print:text-[11px] print:w-36">{schoolConfig.homeroomTeacher}</div>
+                                                        </div>
+
+                                                        {/* Parent / Guardian Signature */}
+                                                        <div>
+                                                            <div className="mb-32 print:mb-[3cm] font-semibold text-slate-800">
+                                                                <span className="arabic-header font-bold text-[14px] print:text-[12px]">ولي الأمر</span> 
+                                                                <span className="font-sans text-[12px] print:text-[10.5px]"> / Orang Tua</span>
+                                                            </div>
+                                                            <div className="border-b border-dashed border-slate-400 w-36 mx-auto pb-1 print:w-32">&nbsp;</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
                                         </div>
-
-                                        {/* Signature Block */}
-                                        <div className="mt-2 border-t border-slate-300 pt-2 print:mt-1.5 print:pt-1.5" dir="rtl">
-                                            <div className="text-right text-[11px] text-slate-600 mb-3 print:text-[9.5px] print:mb-1.5">
-                                                <span className="trad-arabic text-[14px] print:text-[12px]">تحريرا في:</span> <span className="font-sans text-[11px] print:text-[10px]">{schoolConfig.placeDateGreg} <span className="trad-arabic text-[14px] print:text-[12px]">/</span> {schoolConfig.placeDateHijr}</span>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-3 gap-2 text-center text-slate-800 leading-tight">
-                                                
-                                                {/* Headmaster Signature */}
-                                                <div>
-                                                    <div className="mb-32 print:mb-[3cm] font-semibold text-slate-800">
-                                                        <span className="arabic-header font-bold text-[14px] print:text-[12px]">رئيس المدرسة الثانوية</span> 
-                                                        <span className="font-sans text-[12px] print:text-[10.5px]"> / Kepala SMP</span>
-                                                    </div>
-                                                    <div className="border-b border-slate-800 w-44 mx-auto pb-1 text-emerald-950 arabic-header font-bold text-[13px] print:text-[11px] print:w-36">{schoolConfig.headmaster}</div>
-                                                </div>
-
-                                                {/* Homeroom Teacher */}
-                                                <div>
-                                                    <div className="mb-32 print:mb-[3cm] font-semibold text-slate-800">
-                                                        <span className="arabic-header font-bold text-[14px] print:text-[12px]">ولي الفصل</span> 
-                                                        <span className="font-sans text-[12px] print:text-[10.5px]"> / Wali Kelas</span>
-                                                    </div>
-                                                    <div className="border-b border-slate-800 w-44 mx-auto pb-1 text-emerald-950 arabic-header font-bold text-[13px] print:text-[11px] print:w-36">{schoolConfig.homeroomTeacher}</div>
-                                                </div>
-
-                                                {/* Parent / Guardian Signature */}
-                                                <div>
-                                                    <div className="mb-32 print:mb-[3cm] font-semibold text-slate-800">
-                                                        <span className="arabic-header font-bold text-[14px] print:text-[12px]">ولي الأمر</span> 
-                                                        <span className="font-sans text-[12px] print:text-[10.5px]"> / Orang Tua</span>
-                                                    </div>
-                                                    <div className="border-b border-dashed border-slate-400 w-36 mx-auto pb-1 print:w-32">&nbsp;</div>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                     </div>
+                                ) : (
+                                    <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500 w-full">
+                                        <UserX size={48} className="mb-3 mx-auto text-slate-300" />
+                                        <p className="font-medium text-slate-600">Belum ada data siswa yang diunggah.</p>
+                                        <p className="text-xs text-slate-400 mt-1">Gunakan panel kiri untuk mengunggah berkas Excel atau mengisi data secara manual.</p>
+                                    </div>
+                                )}
+
+                            </div>
+
+                        </main>
+
+                        {/* App Footer (no-print) */}
+                        <footer className="bg-slate-900 text-slate-400 text-xs py-4 px-6 border-t border-slate-800 text-center no-print mt-auto">
+                            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+                                <div>Rapor Ma'had MBS 2026 - All rights reserved.</div>
+                                <div className="flex items-center gap-1">
+                                    <span className="px-1.5 py-0.5 bg-slate-800 text-slate-300 text-[10px] rounded font-mono font-bold">PRO V2.9</span>
+                                    <span>Strict Single-Page Print Layout with Flex height equalization</span>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500 w-full">
-                                <UserX size={48} className="mb-3 mx-auto text-slate-300" />
-                                <p className="font-medium text-slate-600">Belum ada data siswa yang diunggah.</p>
-                                <p className="text-xs text-slate-400 mt-1">Gunakan panel kiri untuk mengunggah berkas Excel atau mengisi data secara manual.</p>
-                            </div>
-                        )}
-
+                        </footer>
                     </div>
+            );
+        }
 
-                </main>
-
-                {/* App Footer (no-print) */}
-                <footer className="bg-slate-900 text-slate-400 text-xs py-4 px-6 border-t border-slate-800 text-center no-print mt-auto">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
-                        <div>Rapor Ma'had MBS 2026 - All rights reserved.</div>
-                        <div className="flex items-center gap-1">
-                            <span className="px-1.5 py-0.5 bg-slate-800 text-slate-300 text-[10px] rounded font-mono font-bold">PRO V2.9</span>
-                            <span>Strict Single-Page Print Layout with Flex height equalization</span>
-                        </div>
-                    </div>
-                </footer>
-            </div>
-    );
-}
+        // Jalankan aplikasi ke dalam elemen dengan ID "root"
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
